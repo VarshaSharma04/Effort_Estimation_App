@@ -53,8 +53,8 @@
 {{ select_field("G_PM_impact","PM Impact","grooming",[0,1]) }}
 {{ select_field("G_CM_impact","CM Impact","grooming",[0,1]) }}
 {{ select_field("G_FM_impact","FM Impact","grooming",[0,1]) }}
-{{ select_field("G_Fronthaul_impact","Fronthaul Impact","grooming",[0,1]) }}
-{{ select_field("G_Backhaul_impact","Backhaul Impact","grooming",[0,1]) }}
+{{ select_field("G_Fronthaul_impact","Fronthaul Impact","grooming",[0,1,2,3]) }}
+{{ select_field("G_Backhaul_impact","Backhaul Impact","grooming",[0,1,2,3]) }}
 {{ select_field("G_Tech_Lead_Support","Tech Lead Support","grooming",[0,1]) }}
 {{ number_field("G_Open_Points_Percentage","Open Points Percentage","grooming") }}
 
@@ -114,6 +114,7 @@
   </div>
   {% endif %}
 </div>
+
 
 
 <div class="final-action">
