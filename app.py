@@ -1,9 +1,11 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, session
 import joblib
 import numpy as np
 import os
 
 app = Flask(__name__)
+app.secret_key = "effort-estimation-secret-key"
+
 
 # =================================================
 # Load trained XGBoost models
@@ -47,7 +49,7 @@ def predict():
     error = None
 
     # -----------------------------
-    # Prepare Grooming input
+    # Grooming input
     # -----------------------------
     grooming_input = []
     grooming_has_data = False
@@ -59,7 +61,7 @@ def predict():
         grooming_input.append(safe_float(raw))
 
     # -----------------------------
-    # Prepare Implementation input
+    # Implementation input
     # -----------------------------
     implementation_input = []
     implementation_has_data = False
@@ -71,16 +73,18 @@ def predict():
         implementation_input.append(safe_float(raw))
 
     # =================================================
-    # ACTION HANDLING
+    # ACTION HANDLING WITH MEMORY
     # =================================================
     if action == "grooming":
         if not grooming_has_data:
             error = "Please enter Grooming details."
         else:
             G = np.array(grooming_input).reshape(1, -1)
-            grooming_effort = round(
-                float(grooming_model.predict(G)[0]), 2
-            )
+            grooming_effort = round(float(grooming_model.predict(G)[0]), 2)
+
+            # 🔐 SAVE TO SESSION
+            session["grooming_input"] = grooming_input
+            session["grooming_effort"] = grooming_effort
 
     elif action == "implementation":
         if not implementation_has_data:
@@ -91,22 +95,18 @@ def predict():
                 float(implementation_model.predict(I)[0]), 2
             )
 
+            # 🔐 SAVE TO SESSION
+            session["implementation_input"] = implementation_input
+            session["implementation_effort"] = implementation_effort
+
     elif action == "final":
-        if not grooming_has_data and not implementation_has_data:
-            error = "Please enter Grooming and/or Implementation details."
+        # Load from session
+        grooming_effort = session.get("grooming_effort")
+        implementation_effort = session.get("implementation_effort")
+
+        if grooming_effort is None and implementation_effort is None:
+            error = "Please calculate Grooming and/or Implementation effort first."
         else:
-            if grooming_has_data:
-                G = np.array(grooming_input).reshape(1, -1)
-                grooming_effort = round(
-                    float(grooming_model.predict(G)[0]), 2
-                )
-
-            if implementation_has_data:
-                I = np.array(implementation_input).reshape(1, -1)
-                implementation_effort = round(
-                    float(implementation_model.predict(I)[0]), 2
-                )
-
             if grooming_effort is not None and implementation_effort is not None:
                 final_effort = round(grooming_effort + implementation_effort, 2)
             elif grooming_effort is not None:
@@ -114,13 +114,10 @@ def predict():
             elif implementation_effort is not None:
                 final_effort = implementation_effort
 
-    # =================================================
-    # Render response
-    # =================================================
     return render_template(
         "index.html",
-        grooming_effort=grooming_effort,
-        implementation_effort=implementation_effort,
+        grooming_effort=session.get("grooming_effort"),
+        implementation_effort=session.get("implementation_effort"),
         final_effort=final_effort,
         error=error
     )
