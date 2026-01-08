@@ -32,7 +32,7 @@
 </div>
 {% endmacro %}
 
-<!-- ================= GROOMING (EXCEL ORDER) ================= -->
+<!-- ================= GROOMING ================= -->
 <h2 class="section-heading">Grooming</h2>
 
 {{ number_field("G_No_of_UserStories","No of User Stories","grooming") }}
@@ -58,13 +58,20 @@
 {{ select_field("G_Tech_Lead_Support","Tech Lead Support","grooming",[0,1]) }}
 {{ number_field("G_Open_Points_Percentage","Open Points Percentage","grooming") }}
 
-<div class="section-action">
+<div class="section-action grooming-action">
   <button type="submit" name="action" value="grooming" class="primary-btn">
     Calculate Grooming Effort
   </button>
+
+  {% if grooming_effort is not none %}
+  <div class="inline-result">
+    Grooming Effort: <strong>{{ grooming_effort }} hrs</strong>
+  </div>
+  {% endif %}
 </div>
 
-<!-- ================= IMPLEMENTATION (EXCEL ORDER) ================= -->
+
+<!-- ================= IMPLEMENTATION ================= -->
 <h2 class="section-heading">Implementation</h2>
 
 {{ number_field("I_No_of_UserStories","No of User Stories","implementation") }}
@@ -96,11 +103,18 @@
 {{ select_field("I_FM_impact","FM Impact","implementation",[0,1]) }}
 {{ select_field("I_Tech_Lead_Support","Tech Lead Support","implementation",[0,1]) }}
 
-<div class="section-action">
+<div class="section-action implementation-action">
   <button type="submit" name="action" value="implementation" class="primary-btn">
     Calculate Implementation Effort
   </button>
+
+  {% if implementation_effort is not none %}
+  <div class="inline-result implementation-result">
+    Implementation Effort: <strong>{{ implementation_effort }} hrs</strong>
+  </div>
+  {% endif %}
 </div>
+
 
 <div class="final-action">
   <button type="submit" name="action" value="final" class="primary-btn final-btn">
@@ -109,6 +123,32 @@
 </div>
 
 </form>
+
+<!-- ================= RESULTS ================= -->
+
+{% if error %}
+<div class="result error">
+  {{ error }}
+</div>
+{% endif %}
+
+{% if grooming_effort is not none %}
+<div class="result">
+  <strong>Grooming Effort:</strong> {{ grooming_effort }} hours
+</div>
+{% endif %}
+
+{% if implementation_effort is not none %}
+<div class="result">
+  <strong>Implementation Effort:</strong> {{ implementation_effort }} hours
+</div>
+{% endif %}
+
+{% if final_effort is not none %}
+<div class="result final">
+  <strong>Final Effort:</strong> {{ final_effort }} hours
+</div>
+{% endif %}
 
 <script>
 function validate(section) {
