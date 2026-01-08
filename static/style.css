@@ -1,0 +1,138 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  color: white;
+
+  /* Background image */
+  background-image: url("/static/bg.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+
+  /* Dark overlay for readability */
+  position: relative;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: -1;
+}
+
+.effort-form {
+  background: rgba(15, 15, 15, 0.85);
+  backdrop-filter: blur(6px);
+  border-radius: 10px;
+}
+
+
+
+h1 {
+  text-align: center;
+  margin: 20px 0;
+}
+
+.effort-form {
+  max-width: 1200px;
+  margin: auto;
+  padding: 20px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.section-heading {
+  grid-column: span 3;
+  font-size: 22px;
+  border-bottom: 1px solid #333;
+  margin-top: 30px;
+  padding-bottom: 6px;
+}
+
+.form-row {
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+input, select {
+  background: #1e1e1e;
+  border: 1px solid #555;
+  color: white;
+  padding: 8px;
+  border-radius: 4px;
+}
+
+input:focus, select:focus {
+  outline: none;
+  border-color: #2e86ff;
+}
+
+/* INVALID FIELD */
+.invalid {
+  border: 1px solid #ff4d4d !important;
+  background: #2a1212;
+}
+
+/* ERROR TEXT */
+.error-text {
+  display: none;
+  color: #ff6b6b;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* BUTTONS */
+.section-action {
+  grid-column: span 3;
+  text-align: right;
+}
+
+.final-action {
+  grid-column: span 3;
+  text-align: center;
+  margin: 30px 0;
+}
+
+.primary-btn {
+  background: #2e86ff;
+  border: none;
+  color: white;
+  padding: 12px 26px;
+  font-size: 16px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.primary-btn:hover {
+  background: #1b5fd1;
+}
+
+.final-btn {
+  font-size: 18px;
+  padding: 14px 40px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .effort-form {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .effort-form {
+    grid-template-columns: 1fr;
+  }
+}
