@@ -1,130 +1,166 @@
-from flask import Flask, render_template, request, session
+from flask import Flask, render_template, request
 import joblib
 import numpy as np
-import os
+import uuid
+from datetime import datetime
+
+from csv_manager import append_estimation
 
 app = Flask(__name__)
-app.secret_key = "effort-estimation-secret-key"
-
 
 # =================================================
-# Load trained XGBoost models
+# Load ML models
 # =================================================
 grooming_model = joblib.load("grooming_effort_model.pkl")
 implementation_model = joblib.load("impl_effort_model.pkl")
 
-# Feature order MUST match training
 GROOMING_FEATURES = list(grooming_model.feature_names_in_)
 IMPLEMENTATION_FEATURES = list(implementation_model.feature_names_in_)
 
+MODEL_VERSION = "xgboost-v1"
+
 # =================================================
-# Utility: Safe float conversion
+# Utils
 # =================================================
-def safe_float(value):
+def safe_float(val):
     try:
-        if value is None or value == "":
+        if val is None or val == "":
             return 0.0
-        return float(value)
+        return float(val)
     except ValueError:
         return 0.0
 
 # =================================================
-# Home route
+# Routes
 # =================================================
 @app.route("/", methods=["GET"])
 def home():
     return render_template("index.html")
 
-# =================================================
-# Predict route (PHASE-AWARE LOGIC)
-# =================================================
 @app.route("/predict", methods=["POST"])
 def predict():
     form = request.form
     action = form.get("action")
 
-    grooming_effort = None
-    implementation_effort = None
-    final_effort = None
-    error = None
+    # -----------------------------
+    # Free-text fields (NOT ML)
+    # -----------------------------
+    feature_name = form.get("feature_name", "")
+    feature_description = form.get("feature_description", "")
+    additional_notes = form.get("additional_notes", "")
 
     # -----------------------------
-    # Grooming input
+    # Grooming inputs
     # -----------------------------
     grooming_input = []
     grooming_has_data = False
 
-    for feature in GROOMING_FEATURES:
-        raw = form.get(f"G_{feature}")
+    for f in GROOMING_FEATURES:
+        raw = form.get(f"G_{f}")
+        val = safe_float(raw)
+        grooming_input.append(val)
         if raw not in (None, "", "0"):
             grooming_has_data = True
-        grooming_input.append(safe_float(raw))
 
     # -----------------------------
-    # Implementation input
+    # Implementation inputs
     # -----------------------------
     implementation_input = []
     implementation_has_data = False
 
-    for feature in IMPLEMENTATION_FEATURES:
-        raw = form.get(f"I_{feature}")
+    for f in IMPLEMENTATION_FEATURES:
+        raw = form.get(f"I_{f}")
+        val = safe_float(raw)
+        implementation_input.append(val)
         if raw not in (None, "", "0"):
             implementation_has_data = True
-        implementation_input.append(safe_float(raw))
 
-    # =================================================
-    # ACTION HANDLING WITH MEMORY
-    # =================================================
+    grooming_effort = None
+    implementation_effort = None
+    final_effort = None
+
+    # -----------------------------
+    # Prediction logic
+    # -----------------------------
     if action == "grooming":
         if not grooming_has_data:
-            error = "Please enter Grooming details."
-        else:
-            G = np.array(grooming_input).reshape(1, -1)
-            grooming_effort = round(float(grooming_model.predict(G)[0]), 2)
+            return render_template("index.html", error="Please fill Grooming inputs")
 
-            # 🔐 SAVE TO SESSION
-            session["grooming_input"] = grooming_input
-            session["grooming_effort"] = grooming_effort
+        G = np.array(grooming_input).reshape(1, -1)
+        grooming_effort = round(float(grooming_model.predict(G)[0]), 2)
 
     elif action == "implementation":
         if not implementation_has_data:
-            error = "Please enter Implementation details."
-        else:
-            I = np.array(implementation_input).reshape(1, -1)
-            implementation_effort = round(
-                float(implementation_model.predict(I)[0]), 2
-            )
+            return render_template("index.html", error="Please fill Implementation inputs")
 
-            # 🔐 SAVE TO SESSION
-            session["implementation_input"] = implementation_input
-            session["implementation_effort"] = implementation_effort
+        I = np.array(implementation_input).reshape(1, -1)
+        implementation_effort = round(float(implementation_model.predict(I)[0]), 2)
 
     elif action == "final":
-        # Load from session
-        grooming_effort = session.get("grooming_effort")
-        implementation_effort = session.get("implementation_effort")
+        if not grooming_has_data and not implementation_has_data:
+            return render_template("index.html", error="Please fill inputs")
 
-        if grooming_effort is None and implementation_effort is None:
-            error = "Please calculate Grooming and/or Implementation effort first."
-        else:
-            if grooming_effort is not None and implementation_effort is not None:
-                final_effort = round(grooming_effort + implementation_effort, 2)
-            elif grooming_effort is not None:
-                final_effort = grooming_effort
-            elif implementation_effort is not None:
-                final_effort = implementation_effort
+        if grooming_has_data:
+            G = np.array(grooming_input).reshape(1, -1)
+            grooming_effort = round(float(grooming_model.predict(G)[0]), 2)
+
+        if implementation_has_data:
+            I = np.array(implementation_input).reshape(1, -1)
+            implementation_effort = round(float(implementation_model.predict(I)[0]), 2)
+
+        if grooming_effort is not None and implementation_effort is not None:
+            final_effort = round(grooming_effort + implementation_effort, 2)
+        elif grooming_effort is not None:
+            final_effort = grooming_effort
+        elif implementation_effort is not None:
+            final_effort = implementation_effort
+
+    # -----------------------------
+    # Append to CSV (Checkpoint 4)
+    # -----------------------------
+    if grooming_effort is not None or implementation_effort is not None:
+        estimation_id = str(uuid.uuid4())
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        row = {
+            "estimation_id": estimation_id,
+
+            "feature_name": feature_name,
+            "feature_description": feature_description,
+            "notes": additional_notes,
+
+            "estimated_by": "default_user",
+            "estimation_timestamp": timestamp,
+
+            "model_version": MODEL_VERSION,
+
+            "predicted_grooming_effort": grooming_effort,
+            "predicted_implementation_effort": implementation_effort,
+            "predicted_final_effort": final_effort,
+
+            "actual_grooming_effort": "",
+            "actual_implementation_effort": "",
+            "actual_final_effort": "",
+
+            "accuracy_percent": "",
+            "error_hours": "",
+            "over_under": "",
+
+            "confidence_level": "",
+            "validated": ""
+        }
+
+        append_estimation(row)
 
     return render_template(
         "index.html",
-        grooming_effort=session.get("grooming_effort"),
-        implementation_effort=session.get("implementation_effort"),
-        final_effort=final_effort,
-        error=error
+        grooming_effort=grooming_effort,
+        implementation_effort=implementation_effort,
+        final_effort=final_effort
     )
 
 # =================================================
-# Run app (Render compatible)
+# Run
 # =================================================
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(debug=True)
