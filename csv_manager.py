@@ -63,62 +63,63 @@ def list_estimation_ids():
 
 
 def update_actual_effort(
-    estimation_id: str,
-    actual_grooming_effort: float,
-    actual_implementation_effort: float
+    estimation_id,
+    actual_grooming_effort,
+    actual_implementation_effort
 ):
-    import csv
-
-    updated = False
     rows = []
+    found = False
 
-    with open(CSV_PATH, "r", newline="", encoding="utf-8") as f:
+    with open(CSV_PATH, newline="", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         fieldnames = reader.fieldnames
-
         for row in reader:
             if row["estimation_id"] == estimation_id:
-                predicted_final = float(row["predicted_final_effort"])
+                found = True
 
+                # -----------------------------
+                # Actuals
+                # -----------------------------
                 actual_final = actual_grooming_effort + actual_implementation_effort
-                error = actual_final - predicted_final
 
-                accuracy = 0
-                if actual_final > 0:
-                    accuracy = max(
-                        0,
-                        min(100, round((1 - abs(error) / actual_final) * 100, 2))
-                    )
-
-                if error > 0:
-                    over_under = "Underestimated"
-                elif error < 0:
-                    over_under = "Overestimated"
-                else:
-                    over_under = "Perfect"
-
-                if accuracy >= 85:
-                    confidence = "High"
-                elif accuracy >= 70:
-                    confidence = "Medium"
-                else:
-                    confidence = "Low"
-
-                # Update row
                 row["actual_grooming_effort"] = actual_grooming_effort
                 row["actual_implementation_effort"] = actual_implementation_effort
                 row["actual_final_effort"] = actual_final
-                row["accuracy_percent"] = accuracy
-                row["error_hours"] = round(error, 2)
-                row["over_under"] = over_under
-                row["confidence_level"] = confidence
-                row["validated"] = "TRUE"
 
-                updated = True
+                # -----------------------------
+                # Accuracy calculation
+                # -----------------------------
+                predicted_final = float(row.get("predicted_final_effort", 0) or 0)
+
+                error_hours = actual_final - predicted_final
+
+                if actual_final > 0:
+                    accuracy = max(
+                        0,
+                        round(100 - (abs(error_hours) / actual_final) * 100, 2)
+                    )
+                else:
+                    accuracy = ""
+
+                if error_hours > 0:
+                    over_under = "Underestimated"
+                elif error_hours < 0:
+                    over_under = "Overestimated"
+                else:
+                    over_under = "Accurate"
+
+                row["accuracy_percent"] = accuracy
+                row["error_hours"] = round(error_hours, 2)
+                row["over_under"] = over_under
+
+                # -----------------------------
+                # Validation flag
+                # -----------------------------
+                row["validated"] = "yes"
 
             rows.append(row)
 
-    if not updated:
+    if not found:
         raise ValueError(f"Estimation ID not found: {estimation_id}")
 
     with open(CSV_PATH, "w", newline="", encoding="utf-8") as f:

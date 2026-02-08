@@ -13,7 +13,10 @@
 
 {% macro number_field(name, label, section) %}
 <div class="form-row">
-  <label>{{ label }}</label>
+<label>
+  No of User Stories
+  <span class="info-icon" data-info="Total number of user stories covered in this estimation.">ⓘ</span>
+</label>
   <input type="number" name="{{ name }}" data-section="{{ section }}">
   <div class="error-text">This field is required</div>
 </div>
@@ -23,11 +26,19 @@
 <div class="form-row">
   <label>{{ label }}</label>
   <select name="{{ name }}" data-section="{{ section }}">
+  {% if options[0] == 0 %}
+    <option value="0" selected>0</option>
+  {% else %}
     <option value="">- Please select -</option>
-    {% for o in options %}
-    <option value="{{ o }}">{{ o }}</option>
-    {% endfor %}
+  {% endif %}
+
+  {% for o in options %}
+    {% if o != 0 %}
+      <option value="{{ o }}">{{ o }}</option>
+    {% endif %}
+  {% endfor %}
   </select>
+
   <div class="error-text">This field is required</div>
 </div>
 {% endmacro %}

@@ -1,5 +1,5 @@
 estimation_id,feature_name,feature_description,notes,estimated_by,estimation_timestamp,model_version,predicted_grooming_effort,predicted_implementation_effort,predicted_final_effort,actual_grooming_effort,actual_implementation_effort,actual_final_effort,accuracy_percent,error_hours,over_under,confidence_level,validated
-489e77e4-bee5-481e-810e-2ccfd4db2844,Login Enhancement,Add OTP-based login,Security audit requirement,default_user,2026-02-01T13:54:05.582554,xgboost-v1,12.5,40,52.5,15,42,57,92.11,4.5,Underestimated,High,TRUE
+489e77e4-bee5-481e-810e-2ccfd4db2844,Login Enhancement,Add OTP-based login,Security audit requirement,default_user,2026-02-01T13:54:05.582554,xgboost-v1,12.5,40,52.5,15,42,57,92.11,4.5,Underestimated,High,yes
 642fbad8-0c3e-4691-a61a-d67951c06266,,,,default_user,2026-02-01 14:56:11,xgboost-v1,38.52,,,,,,,,,,
 0310cfd7-aa5b-451b-b760-cd232f3880ac,,,,default_user,2026-02-01 14:57:46,xgboost-v1,,88.31,,,,,,,,,
 7d03866b-962f-493c-9726-38407ba7f497,,,,default_user,2026-02-01 15:28:53,xgboost-v1,35.24,84.05,119.29,,,,,,,,
