@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Grooming Estimation</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<h1>Grooming Effort Estimation</h1>
+
+<form class="effort-form" method="post">
+
+{% macro number_field(name, label) %}
+<div class="form-row">
+  <label>{{ label }}</label>
+  <input type="number" name="{{ name }}" required>
+</div>
+{% endmacro %}
+
+{% macro select_field(name, label, options) %}
+<div class="form-row">
+  <label>{{ label }}</label>
+  <select name="{{ name }}" required>
+    <option value="0">0</option>
+    {% for o in options %}
+      <option value="{{ o }}">{{ o }}</option>
+    {% endfor %}
+  </select>
+</div>
+{% endmacro %}
+
+<!-- ===== GROOMING FIELDS ===== -->
+<h2 class="section-heading">Grooming Inputs</h2>
+
+{{ number_field("G_No_of_UserStories", "No of User Stories") }}
+{{ select_field("G_Story_Complexity", "Story Complexity", [1,2,3]) }}
+{{ select_field("G_Design_Complexity", "Design Complexity", [1,2,3]) }}
+{{ select_field("G_Meta_Complexity", "Meta Complexity", [1,2,3]) }}
+{{ number_field("G_Assumptions_Count", "Assumptions Count") }}
+{{ number_field("G_Features_Impacted", "Features Impacted") }}
+{{ select_field("G_Codebase_Study_Required", "Codebase Study Required", [1]) }}
+{{ number_field("G_No_of_Interfaces_Impacted", "Interfaces Impacted") }}
+{{ select_field("G_Interface_Complexity", "Interface Complexity", [1,2,3]) }}
+{{ select_field("G_Existing_Design_Study_Required", "Existing Design Study Required", [1]) }}
+{{ number_field("G_CrossComponent_Dependencies", "Cross Component Dependencies") }}
+{{ select_field("G_ICFS_Design_Complexity", "ICFS Design Complexity", [1,2,3]) }}
+{{ select_field("G_META_Impact_Level", "META Impact Level", [1,2,3]) }}
+{{ select_field("G_Cloud_Deployment", "Cloud Deployment", [1]) }}
+{{ select_field("G_Classical_Deployment", "Classical Deployment", [1]) }}
+{{ select_field("G_PM_impact", "PM Impact", [1]) }}
+{{ select_field("G_CM_impact", "CM Impact", [1]) }}
+{{ select_field("G_FM_impact", "FM Impact", [1]) }}
+{{ select_field("G_Fronthaul_impact", "Fronthaul Impact", [1,2,3]) }}
+{{ select_field("G_Backhaul_impact", "Backhaul Impact", [1,2,3]) }}
+{{ select_field("G_Tech_Lead_Support", "Tech Lead Support", [1]) }}
+{{ number_field("G_Open_Points_Percentage", "Open Points Percentage") }}
+
+<div class="section-action">
+  <button class="primary-btn">Calculate Grooming</button>
+</div>
+
+{% if effort is not none %}
+<div class="final-result">
+  Grooming Effort: <strong>{{ effort }} hrs</strong>
+</div>
+{% endif %}
+
+<a href="/" class="history-link">← Back to Home</a>
+
+</form>
+
+</body>
+</html>

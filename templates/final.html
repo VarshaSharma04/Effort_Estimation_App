@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Final Effort Review</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<h1>Final Effort Review</h1>
+
+<div class="effort-form final-layout">
+
+  {% if final_effort %}
+  <div class="final-result top-result">
+    <strong>Final Effort: {{ final_effort }} hrs</strong>
+  </div>
+  {% endif %}
+
+  <!-- ===== TABLES + CENTER BUTTON ROW ===== -->
+  <div class="comparison-row">
+
+    <!-- Grooming -->
+    <div class="table-card">
+      <h2 class="section-heading">Grooming</h2>
+
+      {% if grooming %}
+      <table class="review-table">
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <tr>
+            <td><strong>Effort</strong></td>
+            <td>{{ grooming.effort }} hrs</td>
+          </tr>
+          <tr>
+            <td><strong>Time</strong></td>
+            <td>{{ grooming.time }}</td>
+          </tr>
+
+          {% for key, value in grooming.items() %}
+            {% if key.startswith("G_") %}
+            <tr>
+              <td>{{ key }}</td>
+              <td>{{ value }}</td>
+            </tr>
+            {% endif %}
+          {% endfor %}
+
+        </tbody>
+      </table>
+      {% endif %}
+    </div>
+
+
+    <!-- CENTER BUTTON -->
+    <div class="center-button">
+      <form method="post">
+        <button class="primary-btn final-btn mid-final-btn">
+          Calculate Final Effort
+        </button>
+      </form>
+    </div>
+
+
+    <!-- Implementation -->
+    <div class="table-card">
+      <h2 class="section-heading">Implementation</h2>
+
+      {% if implementation %}
+      <table class="review-table">
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <tr>
+            <td><strong>Effort</strong></td>
+            <td>{{ implementation.effort }} hrs</td>
+          </tr>
+          <tr>
+            <td><strong>Time</strong></td>
+            <td>{{ implementation.time }}</td>
+          </tr>
+
+          {% for key, value in implementation.items() %}
+            {% if key.startswith("I_") %}
+            <tr>
+              <td>{{ key }}</td>
+              <td>{{ value }}</td>
+            </tr>
+            {% endif %}
+          {% endfor %}
+
+        </tbody>
+      </table>
+      {% endif %}
+    </div>
+
+  </div>
+
+  <a href="/" class="history-link">← Back to Home</a>
+
+</div>
+
+</body>
+</html>

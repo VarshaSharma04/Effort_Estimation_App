@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Effort Estimation Platform</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="home-container">
+
+    <div class="home-card">
+
+        <h1 class="home-title">Effort Estimation Platform</h1>
+
+        <p class="home-subtitle">
+            Select the type of estimation you want to perform:
+        </p>
+
+        <!-- ===== MAIN 3 CARDS ===== -->
+        <div class="home-grid">
+
+            <a href="/grooming" class="home-card-option grooming-card">
+                <h2>📊 Grooming Effort</h2>
+                <p>
+                    Estimate effort required for grooming activities including 
+                    story analysis, design complexity, impact assessment, and 
+                    planning considerations.
+                </p>
+            </a>
+
+            <a href="/implementation" class="home-card-option implementation-card">
+                <h2>⚙ Implementation Effort</h2>
+                <p>
+                    Estimate effort required for development tasks including 
+                    coding impact, testing scope, integration complexity, 
+                    and deployment factors.
+                </p>
+            </a>
+
+            <a href="/final" class="home-card-option final-card">
+                <h2>🧮 Final Effort</h2>
+                <p>
+                    Review the latest grooming and implementation estimations 
+                    together and calculate the combined final effort instantly.
+                </p>
+            </a>
+
+        </div>
+
+        <!-- ===== SMALL HISTORY CARD ===== -->
+        <div class="history-wrapper">
+            <a href="/history" class="history-small-card">
+                <h3>📜 Estimation History</h3>
+                <p>
+                    View all previously calculated estimations.
+                </p>
+            </a>
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>

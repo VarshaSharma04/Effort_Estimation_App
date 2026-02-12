@@ -1,166 +1,172 @@
 from flask import Flask, render_template, request
 import joblib
 import numpy as np
-import uuid
+import pandas as pd
+import os
 from datetime import datetime
-
-from csv_manager import append_estimation, get_estimation_by_id
 
 app = Flask(__name__)
 
-# =================================================
-# Load ML models
-# =================================================
+EXCEL_PATH = "Effort_Estimation_Grooming_Implementation_FINAL.xlsx"
+
+# ================= LOAD MODELS =================
 grooming_model = joblib.load("grooming_effort_model.pkl")
 implementation_model = joblib.load("impl_effort_model.pkl")
 
 GROOMING_FEATURES = list(grooming_model.feature_names_in_)
 IMPLEMENTATION_FEATURES = list(implementation_model.feature_names_in_)
 
-MODEL_VERSION = "xgboost-v1"
-
-# =================================================
-# Utils
-# =================================================
-def safe_float(val):
+# ================= UTILITIES =================
+def safe(value):
     try:
-        if val is None or val == "":
-            return 0.0
-        return float(val)
-    except ValueError:
+        return float(value)
+    except:
         return 0.0
 
-# =================================================
-# Routes
-# =================================================
-@app.route("/", methods=["GET"])
+
+def save_entry(entry):
+    df_new = pd.DataFrame([entry])
+
+    if os.path.exists(EXCEL_PATH):
+        df_old = pd.read_excel(EXCEL_PATH)
+
+        # Make schema consistent
+        for col in df_old.columns:
+            if col not in df_new.columns:
+                df_new[col] = ""
+
+        for col in df_new.columns:
+            if col not in df_old.columns:
+                df_old[col] = ""
+
+        df = pd.concat([df_new, df_old], ignore_index=True)
+    else:
+        df = df_new
+
+    df.to_excel(EXCEL_PATH, index=False)
+
+
+def get_last_entry(entry_type):
+    if not os.path.exists(EXCEL_PATH):
+        return None
+
+    df = pd.read_excel(EXCEL_PATH)
+
+    if df.empty or "type" not in df.columns:
+        return None
+
+    filtered = df[df["type"] == entry_type]
+
+    if filtered.empty:
+        return None
+
+    return filtered.iloc[0].to_dict()
+
+
+# ================= ROUTES =================
+
+@app.route("/")
 def home():
-    return render_template("index.html")
+    return render_template("home.html")
 
-@app.route("/predict", methods=["POST"])
-def predict():
-    form = request.form
-    action = form.get("action")
 
-    # -----------------------------
-    # Free-text fields (NOT ML)
-    # -----------------------------
-    feature_name = form.get("feature_name", "")
-    feature_description = form.get("feature_description", "")
-    additional_notes = form.get("additional_notes", "")
+# ---------------- GROOMING ----------------
+@app.route("/grooming", methods=["GET", "POST"])
+def grooming():
+    effort = None
 
-    # -----------------------------
-    # Grooming inputs
-    # -----------------------------
-    grooming_input = []
-    grooming_has_data = False
+    if request.method == "POST":
+        values = [safe(request.form.get(f"G_{f}", 0)) for f in GROOMING_FEATURES]
 
-    for f in GROOMING_FEATURES:
-        raw = form.get(f"G_{f}")
-        val = safe_float(raw)
-        grooming_input.append(val)
-        if raw not in (None, "", "0"):
-            grooming_has_data = True
+        effort = round(
+            float(grooming_model.predict(np.array(values).reshape(1, -1))[0]),
+            2
+        )
 
-    # -----------------------------
-    # Implementation inputs
-    # -----------------------------
-    implementation_input = []
-    implementation_has_data = False
-
-    for f in IMPLEMENTATION_FEATURES:
-        raw = form.get(f"I_{f}")
-        val = safe_float(raw)
-        implementation_input.append(val)
-        if raw not in (None, "", "0"):
-            implementation_has_data = True
-
-    grooming_effort = None
-    implementation_effort = None
-    final_effort = None
-
-    # -----------------------------
-    # Prediction logic
-    # -----------------------------
-    if action == "grooming":
-        if not grooming_has_data:
-            return render_template("index.html", error="Please fill Grooming inputs")
-
-        G = np.array(grooming_input).reshape(1, -1)
-        grooming_effort = round(float(grooming_model.predict(G)[0]), 2)
-
-    elif action == "implementation":
-        if not implementation_has_data:
-            return render_template("index.html", error="Please fill Implementation inputs")
-
-        I = np.array(implementation_input).reshape(1, -1)
-        implementation_effort = round(float(implementation_model.predict(I)[0]), 2)
-
-    elif action == "final":
-        if not grooming_has_data and not implementation_has_data:
-            return render_template("index.html", error="Please fill inputs")
-
-        if grooming_has_data:
-            G = np.array(grooming_input).reshape(1, -1)
-            grooming_effort = round(float(grooming_model.predict(G)[0]), 2)
-
-        if implementation_has_data:
-            I = np.array(implementation_input).reshape(1, -1)
-            implementation_effort = round(float(implementation_model.predict(I)[0]), 2)
-
-        if grooming_effort is not None and implementation_effort is not None:
-            final_effort = round(grooming_effort + implementation_effort, 2)
-        elif grooming_effort is not None:
-            final_effort = grooming_effort
-        elif implementation_effort is not None:
-            final_effort = implementation_effort
-
-    # -----------------------------
-    # Append to CSV (Checkpoint 4)
-    # -----------------------------
-    if grooming_effort is not None or implementation_effort is not None:
-        estimation_id = str(uuid.uuid4())
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-        row = {
-            "estimation_id": estimation_id,
-
-            "feature_name": feature_name,
-            "feature_description": feature_description,
-            "notes": additional_notes,
-
-            "estimated_by": "default_user",
-            "estimation_timestamp": timestamp,
-
-            "model_version": MODEL_VERSION,
-
-            "predicted_grooming_effort": grooming_effort,
-            "predicted_implementation_effort": implementation_effort,
-            "predicted_final_effort": final_effort,
-
-            "actual_grooming_effort": "",
-            "actual_implementation_effort": "",
-            "actual_final_effort": "",
-
-            "accuracy_percent": "",
-            "error_hours": "",
-            "over_under": "",
-
-            "confidence_level": "",
-            "validated": ""
+        entry = {
+            "type": "grooming",
+            "effort": effort,
+            "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
 
-        append_estimation(row)
+        # Save full grooming inputs
+        for f in GROOMING_FEATURES:
+            entry[f"G_{f}"] = request.form.get(f"G_{f}", 0)
+
+        save_entry(entry)
+
+    return render_template("grooming.html", effort=effort)
+
+
+# ---------------- IMPLEMENTATION ----------------
+@app.route("/implementation", methods=["GET", "POST"])
+def implementation():
+    effort = None
+
+    if request.method == "POST":
+        values = [safe(request.form.get(f"I_{f}", 0)) for f in IMPLEMENTATION_FEATURES]
+
+        effort = round(
+            float(implementation_model.predict(np.array(values).reshape(1, -1))[0]),
+            2
+        )
+
+        entry = {
+            "type": "implementation",
+            "effort": effort,
+            "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        }
+
+        # Save full implementation inputs
+        for f in IMPLEMENTATION_FEATURES:
+            entry[f"I_{f}"] = request.form.get(f"I_{f}", 0)
+
+        save_entry(entry)
+
+    return render_template("implementation.html", effort=effort)
+
+
+# ---------------- FINAL REVIEW ----------------
+@app.route("/final", methods=["GET", "POST"])
+def final():
+    last_grooming = get_last_entry("grooming")
+    last_implementation = get_last_entry("implementation")
+
+    final_effort = None
+
+    if request.method == "POST":
+        if last_grooming and last_implementation:
+            g = float(last_grooming.get("effort", 0))
+            i = float(last_implementation.get("effort", 0))
+
+            final_effort = round(g + i, 2)
+
+            save_entry({
+                "type": "final",
+                "grooming_effort": g,
+                "implementation_effort": i,
+                "final_effort": final_effort,
+                "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            })
 
     return render_template(
-        "index.html",
-        grooming_effort=grooming_effort,
-        implementation_effort=implementation_effort,
+        "final.html",
+        grooming=last_grooming,
+        implementation=last_implementation,
         final_effort=final_effort
     )
 
-# =================================================
-# Run
-# =================================================
+
+# ---------------- HISTORY ----------------
+@app.route("/history")
+def history():
+    if not os.path.exists(EXCEL_PATH):
+        data = []
+    else:
+        data = pd.read_excel(EXCEL_PATH).to_dict(orient="records")
+
+    return render_template("history.html", data=data)
+
+
 if __name__ == "__main__":
     app.run(debug=True)

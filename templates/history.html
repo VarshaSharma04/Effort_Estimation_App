@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Estimation History</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<h1>Estimation History</h1>
+
+<div class="effort-form">
+
+  {% if estimations and estimations|length > 0 %}
+  <table style="width:100%; border-collapse: collapse;">
+    <thead>
+      <tr style="border-bottom: 1px solid #444;">
+        {% for key in estimations[0].keys() %}
+        <th style="padding: 8px; text-align: left; font-size: 13px;">
+          {{ key.replace("_", " ").title() }}
+        </th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in estimations %}
+      <tr style="border-bottom: 1px solid #333;">
+        {% for val in row.values() %}
+        <td style="padding: 8px; font-size: 12px;">
+          {{ val }}
+        </td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <p>No estimation history found.</p>
+  {% endif %}
+
+  <div class="final-action">
+    <a href="/" class="primary-btn">⬅ Back</a>
+  </div>
+
+</div>
+
+</body>
+</html>
