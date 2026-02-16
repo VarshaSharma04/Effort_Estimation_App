@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, redirect, render_template, request
 import joblib
 import numpy as np
 import pandas as pd
@@ -9,58 +9,39 @@ app = Flask(__name__)
 
 EXCEL_PATH = "Effort_Estimation_Grooming_Implementation_FINAL.xlsx"
 
-# ================= LOAD MODELS =================
+# Load models
 grooming_model = joblib.load("grooming_effort_model.pkl")
 implementation_model = joblib.load("impl_effort_model.pkl")
 
 GROOMING_FEATURES = list(grooming_model.feature_names_in_)
 IMPLEMENTATION_FEATURES = list(implementation_model.feature_names_in_)
 
-# ================= UTILITIES =================
-def safe(value):
+
+# ================= UTIL =================
+def safe(v):
     try:
-        return float(value)
+        return float(v)
     except:
         return 0.0
 
 
-def save_entry(entry):
-    df_new = pd.DataFrame([entry])
+def save_to_sheet(sheet_name, row_dict):
+    new_row_df = pd.DataFrame([row_dict])
 
     if os.path.exists(EXCEL_PATH):
-        df_old = pd.read_excel(EXCEL_PATH)
 
-        # Make schema consistent
-        for col in df_old.columns:
-            if col not in df_new.columns:
-                df_new[col] = ""
+        try:
+            existing_df = pd.read_excel(EXCEL_PATH, sheet_name=sheet_name)
+            combined_df = pd.concat([new_row_df, existing_df], ignore_index=True)
+        except:
+            combined_df = new_row_df
 
-        for col in df_new.columns:
-            if col not in df_old.columns:
-                df_old[col] = ""
+        with pd.ExcelWriter(EXCEL_PATH, engine="openpyxl", mode="a", if_sheet_exists="replace") as writer:
+            combined_df.to_excel(writer, sheet_name=sheet_name, index=False)
 
-        df = pd.concat([df_new, df_old], ignore_index=True)
     else:
-        df = df_new
-
-    df.to_excel(EXCEL_PATH, index=False)
-
-
-def get_last_entry(entry_type):
-    if not os.path.exists(EXCEL_PATH):
-        return None
-
-    df = pd.read_excel(EXCEL_PATH)
-
-    if df.empty or "type" not in df.columns:
-        return None
-
-    filtered = df[df["type"] == entry_type]
-
-    if filtered.empty:
-        return None
-
-    return filtered.iloc[0].to_dict()
+        with pd.ExcelWriter(EXCEL_PATH, engine="openpyxl") as writer:
+            new_row_df.to_excel(writer, sheet_name=sheet_name, index=False)
 
 
 # ================= ROUTES =================
@@ -70,103 +51,339 @@ def home():
     return render_template("home.html")
 
 
-# ---------------- GROOMING ----------------
+# ================= GROOMING =================
 @app.route("/grooming", methods=["GET", "POST"])
 def grooming():
     effort = None
 
     if request.method == "POST":
-        values = [safe(request.form.get(f"G_{f}", 0)) for f in GROOMING_FEATURES]
 
-        effort = round(
-            float(grooming_model.predict(np.array(values).reshape(1, -1))[0]),
-            2
-        )
+        Feature_ID = request.form.get("Feature_ID", "").strip()
+        Feature_Name = request.form.get("Feature_Name", "").strip()
 
-        entry = {
-            "type": "grooming",
-            "effort": effort,
+
+        values = []
+        input_data = {}
+
+        for f in GROOMING_FEATURES:
+            val = safe(request.form.get(f"G_{f}", 0))
+            values.append(val)
+            input_data[f] = val
+
+        effort = round(float(
+            grooming_model.predict(np.array(values).reshape(1, -1))[0]
+        ), 2)
+
+        row = {
+            "Feature_ID": Feature_ID,
+            "Feature_Name": Feature_Name,
+            "grooming_effort": effort,
             "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
 
-        # Save full grooming inputs
-        for f in GROOMING_FEATURES:
-            entry[f"G_{f}"] = request.form.get(f"G_{f}", 0)
+        row.update(input_data)
 
-        save_entry(entry)
+        save_to_sheet("Grooming", row)
 
     return render_template("grooming.html", effort=effort)
 
 
-# ---------------- IMPLEMENTATION ----------------
+# ================= IMPLEMENTATION =================
 @app.route("/implementation", methods=["GET", "POST"])
 def implementation():
     effort = None
 
     if request.method == "POST":
-        values = [safe(request.form.get(f"I_{f}", 0)) for f in IMPLEMENTATION_FEATURES]
 
-        effort = round(
-            float(implementation_model.predict(np.array(values).reshape(1, -1))[0]),
-            2
-        )
+        Feature_ID = request.form.get("Feature_ID", "").strip()
+        Feature_Name = request.form.get("Feature_Name", "").strip()
 
-        entry = {
-            "type": "implementation",
-            "effort": effort,
+        values = []
+        input_data = {}
+
+        for f in IMPLEMENTATION_FEATURES:
+            val = safe(request.form.get(f"I_{f}", 0))
+            values.append(val)
+            input_data[f] = val
+
+        effort = round(float(
+            implementation_model.predict(np.array(values).reshape(1, -1))[0]
+        ), 2)
+
+        row = {
+            "Feature_ID": Feature_ID,
+            "Feature_Name": Feature_Name,
+            "implementation_effort": effort,
             "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
 
-        # Save full implementation inputs
-        for f in IMPLEMENTATION_FEATURES:
-            entry[f"I_{f}"] = request.form.get(f"I_{f}", 0)
+        row.update(input_data)
 
-        save_entry(entry)
+        save_to_sheet("Implementation", row)
 
     return render_template("implementation.html", effort=effort)
 
 
-# ---------------- FINAL REVIEW ----------------
+# ================= FINAL =================
 @app.route("/final", methods=["GET", "POST"])
 def final():
-    last_grooming = get_last_entry("grooming")
-    last_implementation = get_last_entry("implementation")
 
+    grooming_record = None
+    implementation_record = None
     final_effort = None
+    feature_id = ""
+    query = ""
 
     if request.method == "POST":
-        if last_grooming and last_implementation:
-            g = float(last_grooming.get("effort", 0))
-            i = float(last_implementation.get("effort", 0))
 
-            final_effort = round(g + i, 2)
+        query = request.form.get("feature_id", "").strip()
+        action = request.form.get("action")
 
-            save_entry({
-                "type": "final",
-                "grooming_effort": g,
-                "implementation_effort": i,
+        if query and os.path.exists(EXCEL_PATH):
+
+            with pd.ExcelFile(EXCEL_PATH) as xls:
+
+                # ---------- GROOMING ----------
+                if "Grooming" in xls.sheet_names:
+                    g_df = pd.read_excel(EXCEL_PATH, sheet_name="Grooming")
+                    g_df.columns = g_df.columns.str.strip().str.lower()
+                    g_df = g_df.fillna("")
+
+                    g_df["feature_id"] = g_df["feature_id"].astype(str).str.strip()
+                    g_df["feature_name"] = g_df["feature_name"].astype(str).str.strip()
+
+                    match = g_df[
+                        (g_df["feature_id"] == query) |
+                        (g_df["feature_name"].str.lower() == query.lower())
+                    ]
+
+                    if not match.empty:
+                        grooming_record = match.iloc[0].to_dict()
+                        feature_id = grooming_record.get("feature_id", "")
+
+                # ---------- IMPLEMENTATION ----------
+                if "Implementation" in xls.sheet_names:
+                    i_df = pd.read_excel(EXCEL_PATH, sheet_name="Implementation")
+                    i_df.columns = i_df.columns.str.strip().str.lower()
+                    i_df = i_df.fillna("")
+
+                    i_df["feature_id"] = i_df["feature_id"].astype(str).str.strip()
+                    i_df["feature_name"] = i_df["feature_name"].astype(str).str.strip()
+
+                    match = i_df[
+                        (i_df["feature_id"] == feature_id) |
+                        (i_df["feature_name"].str.lower() == query.lower())
+                    ]
+
+                    if not match.empty:
+                        implementation_record = match.iloc[0].to_dict()
+
+        # ---------- CALCULATE ----------
+        if action == "calculate" and grooming_record and implementation_record:
+
+            g_effort = float(grooming_record.get("grooming_effort", 0))
+            i_effort = float(implementation_record.get("implementation_effort", 0))
+
+            final_effort = round(g_effort + i_effort, 2)
+
+            row = {
+                "feature_id": grooming_record.get("feature_id", ""),
+                "feature_name": grooming_record.get("feature_name", ""),
+                "grooming_effort": g_effort,
+                "implementation_effort": i_effort,
                 "final_effort": final_effort,
                 "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            })
+            }
+
+            save_to_sheet("Final", row)
 
     return render_template(
         "final.html",
-        grooming=last_grooming,
-        implementation=last_implementation,
-        final_effort=final_effort
+        grooming=grooming_record,
+        implementation=implementation_record,
+        final_effort=final_effort,
+        feature_id=query
     )
 
 
-# ---------------- HISTORY ----------------
+# ================= HISTORY HOME =================
 @app.route("/history")
-def history():
+def history_home():
+    return render_template("history_home.html")
+
+
+# ================= GROOMING HISTORY =================
+@app.route("/history/grooming")
+def grooming_history():
+
     if not os.path.exists(EXCEL_PATH):
-        data = []
-    else:
-        data = pd.read_excel(EXCEL_PATH).to_dict(orient="records")
+        return render_template("history_table.html", title="Grooming History", rows=[])
 
-    return render_template("history.html", data=data)
+    try:
+        df = pd.read_excel(EXCEL_PATH, sheet_name="Grooming")
+        rows = df.to_dict(orient="records")
+    except:
+        rows = []
 
+    return render_template("history_table.html", title="Grooming History", rows=rows)
+
+
+# ================= IMPLEMENTATION HISTORY =================
+@app.route("/history/implementation")
+def implementation_history():
+
+    if not os.path.exists(EXCEL_PATH):
+        return render_template("history_table.html", title="Implementation History", rows=[])
+
+    try:
+        df = pd.read_excel(EXCEL_PATH, sheet_name="Implementation")
+        rows = df.to_dict(orient="records")
+    except:
+        rows = []
+
+    return render_template("history_table.html", title="Implementation History", rows=rows)
+
+
+# ================= FINAL HISTORY =================
+@app.route("/history/final")
+def final_history():
+
+    if not os.path.exists(EXCEL_PATH):
+        return render_template("history_table.html", title="Final History", rows=[])
+
+    try:
+        df = pd.read_excel(EXCEL_PATH, sheet_name="Final")
+        rows = df.to_dict(orient="records")
+    except:
+        rows = []
+
+    return render_template("history_table.html", title="Final History", rows=rows)
+
+
+
+# ================= SEARCH =================
+@app.route("/search", methods=["GET", "POST"])
+def search():
+
+    grooming_results = []
+    implementation_results = []
+    final_results = []
+
+    if request.method == "POST":
+
+        query = request.form.get("query", "").strip()
+
+        if query == "" or not os.path.exists(EXCEL_PATH):
+            return render_template(
+                "search.html",
+                grooming_results=[],
+                implementation_results=[],
+                final_results=[]
+            )
+
+        xls = pd.ExcelFile(EXCEL_PATH)
+
+        for sheet in xls.sheet_names:
+
+            df = pd.read_excel(EXCEL_PATH, sheet_name=sheet)
+
+            if df.empty:
+                continue
+
+            # Normalize columns safely
+            df.columns = df.columns.astype(str).str.strip().str.lower()
+
+            # Remove duplicate columns completely
+            df = df.loc[:, ~df.columns.duplicated()]
+
+            df = df.fillna("")
+
+            # Ensure required columns exist
+            if "feature_id" not in df.columns:
+                continue
+
+            # Convert safely WITHOUT using .str on column selection
+            df["feature_id"] = df["feature_id"].apply(lambda x: str(x).strip())
+
+            if "feature_name" in df.columns:
+                df["feature_name"] = df["feature_name"].apply(lambda x: str(x).strip())
+            else:
+                df["feature_name"] = ""
+
+            # Exact match only
+            filtered = df[
+                (df["feature_id"] == query) |
+                (df["feature_name"].str.lower() == query.lower())
+            ]
+
+            if filtered.empty:
+                continue
+
+            records = filtered.to_dict(orient="records")
+
+            # Replace empty with ---
+            for record in records:
+                for k, v in record.items():
+                    if v == "" or str(v).lower() == "nan":
+                        record[k] = "---"
+
+            if sheet.lower() == "grooming":
+                grooming_results = records
+
+            elif sheet.lower() == "implementation":
+                implementation_results = records
+
+            elif sheet.lower() == "final":
+                final_results = records
+
+    return render_template(
+        "search.html",
+        grooming_results=grooming_results,
+        implementation_results=implementation_results,
+        final_results=final_results
+    )
+
+# ================= EDIT =================
+@app.route("/edit/<sheet>/<feature_id>", methods=["GET", "POST"])
+def edit(sheet, feature_id):
+
+    if not os.path.exists(EXCEL_PATH):
+        return "Excel file not found"
+
+    df = pd.read_excel(EXCEL_PATH, sheet_name=sheet)
+
+    if df.empty:
+        return "Sheet is empty"
+
+    # Normalize column names
+    df.columns = df.columns.str.strip()
+
+    if "feature_id" not in df.columns:
+        return "feature_id column missing"
+
+    df["feature_id"] = df["feature_id"].fillna("").astype(str).str.strip()
+
+    feature_id = str(feature_id).strip()
+
+    record = df[df["feature_id"] == feature_id]
+
+    if record.empty:
+        return "Record not found"
+
+    if request.method == "POST":
+
+        for col in df.columns:
+            if col in request.form:
+                df.loc[df["feature_id"] == feature_id, col] = request.form[col]
+
+        with pd.ExcelWriter(EXCEL_PATH, engine="openpyxl", mode="a", if_sheet_exists="replace") as writer:
+            df.to_excel(writer, sheet_name=sheet, index=False)
+
+        return redirect("/search")
+
+    row_data = record.iloc[0].fillna("---").to_dict()
+
+    return render_template("edit.html", row=row_data, sheet=sheet)
 
 if __name__ == "__main__":
     app.run(debug=True)

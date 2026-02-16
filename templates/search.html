@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Search & Edit</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<h1>Search Feature History</h1>
+
+<div class="card">
+
+    <!-- SEARCH FORM -->
+    <form method="POST" action="{{ url_for('search') }}">
+
+        <div class="form-row">
+            <input type="text" 
+                   name="query" 
+                   placeholder="Enter Feature ID or Feature Name" 
+                   required>
+        </div>
+
+        <div class="section-action">
+            <button type="submit" class="primary-btn">
+                Search
+            </button>
+        </div>
+
+    </form>
+
+</div>
+
+
+<!-- ================= RESULTS ================= -->
+
+{% if grooming_results or implementation_results or final_results %}
+
+<div class="card">
+
+    <!-- GROOMING RESULTS -->
+    {% if grooming_results %}
+        <h2 class="section-heading">Grooming Results</h2>
+
+        <table class="review-table">
+            <thead>
+                <tr>
+                    {% for col in grooming_results[0].keys() %}
+                        <th>{{ col }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in grooming_results %}
+                    <tr>
+                        {% for value in row.values() %}
+                            <td>{{ value }}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+
+    <!-- IMPLEMENTATION RESULTS -->
+    {% if implementation_results %}
+        <h2 class="section-heading">Implementation Results</h2>
+
+        <table class="review-table">
+            <thead>
+                <tr>
+                    {% for col in implementation_results[0].keys() %}
+                        <th>{{ col }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in implementation_results %}
+                    <tr>
+                        {% for value in row.values() %}
+                            <td>{{ value }}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+
+    <!-- FINAL RESULTS -->
+    {% if final_results %}
+        <h2 class="section-heading">Final Results</h2>
+
+        <table class="review-table">
+            <thead>
+                <tr>
+                    {% for col in final_results[0].keys() %}
+                        <th>{{ col }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in final_results %}
+                    <tr>
+                        {% for value in row.values() %}
+                            <td>{{ value }}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+</div>
+
+{% elif request.method == "POST" %}
+    <div class="card center">
+        <h3>No results found.</h3>
+    </div>
+{% endif %}
+
+
+<a href="/" class="history-link">← Back to Home</a>
+
+</body>
+</html>

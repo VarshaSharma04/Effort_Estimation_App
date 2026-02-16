@@ -471,3 +471,69 @@ input, select {
         width: 100%;
     }
 }
+.home-subtext {
+  font-size: 13px;
+  margin-top: 8px;
+  color: #bbb;
+}
+/* ===== HISTORY CARD ANIMATION ===== */
+
+.history-container {
+  max-width: 1100px;
+  margin: 80px auto;
+  display: flex;
+  gap: 40px;
+  justify-content: center;
+}
+
+.history-card {
+  flex: 1;
+  padding: 30px;
+  border-radius: 16px;
+  background: linear-gradient(145deg, #1c1c1c, #141414);
+  color: white;
+  text-decoration: none;
+  transition: 
+      transform 0.3s ease,
+      box-shadow 0.3s ease,
+      background 0.3s ease;
+  border: 1px solid #2a2a2a;
+}
+
+.history-card h2 {
+  margin-bottom: 10px;
+}
+
+.history-card p {
+  color: #aaa;
+  font-size: 14px;
+}
+
+.history-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 18px 45px rgba(0,0,0,0.6);
+}
+
+/* Optional color accents */
+
+.history-card.grooming:hover {
+  background: linear-gradient(145deg, #2e86ff, #1b5fd1);
+}
+
+.history-card.implementation:hover {
+  background: linear-gradient(145deg, #00b894, #008f6b);
+}
+
+.history-card.final:hover {
+  background: linear-gradient(145deg, #f39c12, #d35400);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .history-container {
+    flex-direction: column;
+  }
+}
+.search-card:hover {
+    border-color: #9b59b6;
+}

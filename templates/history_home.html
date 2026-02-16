@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Estimation History</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<h1 style="text-align:center; margin-top:40px;">
+    Estimation History
+</h1>
+
+<div class="history-container">
+
+    <a href="/history/grooming" class="history-card grooming">
+        <h2>📊 Grooming History</h2>
+        <p>View all grooming estimations recorded.</p>
+    </a>
+
+    <a href="/history/implementation" class="history-card implementation">
+        <h2>⚙ Implementation History</h2>
+        <p>View all implementation estimations recorded.</p>
+    </a>
+
+    <a href="/history/final" class="history-card final">
+        <h2>🧮 Final History</h2>
+        <p>View all final combined estimations.</p>
+    </a>
+
+</div>
+
+<div style="text-align:center; margin-top:40px;">
+    <a href="/" style="color:#9ecbff;">← Back to Home</a>
+</div>
+
+</body>
+</html>

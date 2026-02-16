@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Entry</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<h1 style="text-align:center; margin-top:40px;">
+    Edit Entry
+</h1>
+
+<form method="POST" style="max-width:900px; margin:40px auto;">
+
+    {% for key, value in data.items() %}
+        <div class="form-row">
+            <label>{{ key }}</label>
+            <input type="text" name="{{ key }}" value="{{ value }}">
+        </div>
+    {% endfor %}
+
+    <div style="text-align:center; margin-top:20px;">
+        <button class="primary-btn">Save Changes</button>
+    </div>
+
+</form>
+
+<div style="text-align:center;">
+    <a href="/search" style="color:#9ecbff;">← Back</a>
+</div>
+
+</body>
+</html>

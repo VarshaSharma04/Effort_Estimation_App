@@ -1,113 +1,115 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Final Effort Review</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta charset="UTF-8">
+    <title>Final Effort Review</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
+
 <body>
 
 <h1>Final Effort Review</h1>
 
-<div class="effort-form final-layout">
+<!-- ================= SEARCH FORM ================= -->
 
-  {% if final_effort %}
-  <div class="final-result top-result">
-    <strong>Final Effort: {{ final_effort }} hrs</strong>
-  </div>
-  {% endif %}
+<div class="top-action">
+    <form method="POST" class="search-form">
 
-  <!-- ===== TABLES + CENTER BUTTON ROW ===== -->
-  <div class="comparison-row">
+        <input type="text"
+               name="feature_id"
+               placeholder="Enter Feature ID or Name"
+               value="{{ feature_id if feature_id else '' }}"
+               required>
 
-    <!-- Grooming -->
-    <div class="table-card">
-      <h2 class="section-heading">Grooming</h2>
-
-      {% if grooming %}
-      <table class="review-table">
-        <thead>
-          <tr>
-            <th>Field</th>
-            <th>Value</th>
-          </tr>
-        </thead>
-        <tbody>
-
-          <tr>
-            <td><strong>Effort</strong></td>
-            <td>{{ grooming.effort }} hrs</td>
-          </tr>
-          <tr>
-            <td><strong>Time</strong></td>
-            <td>{{ grooming.time }}</td>
-          </tr>
-
-          {% for key, value in grooming.items() %}
-            {% if key.startswith("G_") %}
-            <tr>
-              <td>{{ key }}</td>
-              <td>{{ value }}</td>
-            </tr>
-            {% endif %}
-          {% endfor %}
-
-        </tbody>
-      </table>
-      {% endif %}
-    </div>
-
-
-    <!-- CENTER BUTTON -->
-    <div class="center-button">
-      <form method="post">
-        <button class="primary-btn final-btn mid-final-btn">
-          Calculate Final Effort
+        <button type="submit"
+                name="action"
+                value="search"
+                class="primary-btn">
+            Search
         </button>
-      </form>
-    </div>
 
+        {% if grooming and implementation %}
+        <button type="submit"
+                name="action"
+                value="calculate"
+                class="primary-btn big-final-btn">
+            Calculate Final Effort
+        </button>
+        {% endif %}
 
-    <!-- Implementation -->
+    </form>
+</div>
+
+<!-- ================= FINAL RESULT ================= -->
+
+{% if final_effort %}
+<div class="top-result">
+    <strong>Final Effort: {{ final_effort }} hrs</strong>
+</div>
+{% endif %}
+
+<!-- ================= TABLE SECTION ================= -->
+
+{% if grooming or implementation %}
+<div class="comparison-row">
+
+    <!-- ============ GROOMING TABLE ============ -->
+    {% if grooming %}
     <div class="table-card">
-      <h2 class="section-heading">Implementation</h2>
 
-      {% if implementation %}
-      <table class="review-table">
-        <thead>
-          <tr>
-            <th>Field</th>
-            <th>Value</th>
-          </tr>
-        </thead>
-        <tbody>
+        <h2 class="section-heading">Grooming</h2>
 
-          <tr>
-            <td><strong>Effort</strong></td>
-            <td>{{ implementation.effort }} hrs</td>
-          </tr>
-          <tr>
-            <td><strong>Time</strong></td>
-            <td>{{ implementation.time }}</td>
-          </tr>
-
-          {% for key, value in implementation.items() %}
-            {% if key.startswith("I_") %}
+        <table class="review-table">
             <tr>
-              <td>{{ key }}</td>
-              <td>{{ value }}</td>
+                <th>Field</th>
+                <th>Value</th>
             </tr>
-            {% endif %}
-          {% endfor %}
 
-        </tbody>
-      </table>
-      {% endif %}
+            {% for key, value in grooming.items() %}
+                {% if key not in ["feature_id"] %}
+                <tr>
+                    <td>{{ key.replace("_"," ").title() }}</td>
+                    <td>{{ value if value != "" else "---" }}</td>
+                </tr>
+                {% endif %}
+            {% endfor %}
+
+        </table>
     </div>
+    {% endif %}
 
-  </div>
+    <!-- ============ IMPLEMENTATION TABLE ============ -->
+    {% if implementation %}
+    <div class="table-card">
 
-  <a href="/" class="history-link">← Back to Home</a>
+        <h2 class="section-heading">Implementation</h2>
 
+        <table class="review-table">
+            <tr>
+                <th>Field</th>
+                <th>Value</th>
+            </tr>
+
+            {% for key, value in implementation.items() %}
+                {% if key not in ["feature_id"] %}
+                <tr>
+                    <td>{{ key.replace("_"," ").title() }}</td>
+                    <td>{{ value if value != "" else "---" }}</td>
+                </tr>
+                {% endif %}
+            {% endfor %}
+
+        </table>
+    </div>
+    {% endif %}
+
+</div>
+{% endif %}
+
+<!-- ================= BACK BUTTON ================= -->
+
+<div class="center" style="margin-top:40px;">
+    <a href="/" class="history-link">← Back to Home</a>
 </div>
 
 </body>

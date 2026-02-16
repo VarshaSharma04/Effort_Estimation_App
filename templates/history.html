@@ -1,48 +1,48 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>Estimation History</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>History</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 
 <h1>Estimation History</h1>
 
-<div class="effort-form">
+{% if data %}
 
-  {% if estimations and estimations|length > 0 %}
-  <table style="width:100%; border-collapse: collapse;">
-    <thead>
-      <tr style="border-bottom: 1px solid #444;">
-        {% for key in estimations[0].keys() %}
-        <th style="padding: 8px; text-align: left; font-size: 13px;">
-          {{ key.replace("_", " ").title() }}
-        </th>
-        {% endfor %}
-      </tr>
-    </thead>
-    <tbody>
-      {% for row in estimations %}
-      <tr style="border-bottom: 1px solid #333;">
-        {% for val in row.values() %}
-        <td style="padding: 8px; font-size: 12px;">
-          {{ val }}
-        </td>
-        {% endfor %}
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  {% else %}
-    <p>No estimation history found.</p>
-  {% endif %}
+    {% for sheet, rows in data.items() %}
+        <h2>{{ sheet }}</h2>
 
-  <div class="final-action">
-    <a href="/" class="primary-btn">⬅ Back</a>
-  </div>
+        {% if rows %}
+            <table class="review-table">
+                <thead>
+                    <tr>
+                        {% for col in rows[0].keys() %}
+                            <th>{{ col }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in rows %}
+                        <tr>
+                            {% for value in row.values() %}
+                                <td>{{ value }}</td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No data available.</p>
+        {% endif %}
 
-</div>
+    {% endfor %}
+
+{% else %}
+    <p>No history found.</p>
+{% endif %}
+
+<a href="/">← Back to Home</a>
 
 </body>
 </html>

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>Grooming Estimation</title>
@@ -9,7 +10,17 @@
 
 <h1>Grooming Effort Estimation</h1>
 
+
 <form class="effort-form" method="post">
+  <div class="form-row">
+    <label>Feature ID</label>
+    <input type="text" name="Feature_ID" required>
+  </div>
+
+  <div class="form-row">
+    <label>Feature Name</label>
+    <input type="text" name="Feature_Name" required>
+  </div>
 
 {% macro number_field(name, label) %}
 <div class="form-row">

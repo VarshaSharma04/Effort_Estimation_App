@@ -1,79 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>Implementation Estimation</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
+
 <body>
 
 <h1>Implementation Effort Estimation</h1>
 
 <form class="effort-form" method="post">
+  <div class="form-row">
+    <label>Feature ID</label>
+    <input type="text" name="Feature_ID" required>
+  </div>
 
-{% macro number_field(name, label) %}
-<div class="form-row">
-  <label>{{ label }}</label>
-  <input type="number" name="{{ name }}" required>
-</div>
-{% endmacro %}
+  <div class="form-row">
+    <label>Feature Name</label>
+    <input type="text" name="Feature_Name" required>
+  </div>
 
-{% macro select_field(name, label, options) %}
-<div class="form-row">
-  <label>{{ label }}</label>
-  <select name="{{ name }}" required>
-    <option value="0">0</option>
-    {% for o in options %}
-      <option value="{{ o }}">{{ o }}</option>
-    {% endfor %}
-  </select>
-</div>
-{% endmacro %}
+  {% macro number_field(name, label) %}
+  <div class="form-row">
+    <label>{{ label }}</label>
+    <input type="number" name="{{ name }}" required>
+  </div>
+  {% endmacro %}
 
-<h2 class="section-heading">Implementation Inputs</h2>
+  {% macro select_field(name, label, options) %}
+  <div class="form-row">
+    <label>{{ label }}</label>
+    <select name="{{ name }}" required>
+      <option value="0">0</option>
+      {% for o in options %}
+        <option value="{{ o }}">{{ o }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  {% endmacro %}
 
-{{ number_field("I_No_of_UserStories","No of User Stories") }}
-{{ select_field("I_Story_Complexity","Story Complexity",[1,2,3]) }}
-{{ select_field("I_Design_Complexity","Design Complexity",[1,2,3]) }}
-{{ select_field("I_Meta_Complexity","Meta Complexity",[1,2,3]) }}
-{{ number_field("I_Features_Impacted","Features Impacted") }}
-{{ number_field("I_Files_Impacted","Files Impacted") }}
-{{ number_field("I_Approx_LOC_Source","Approx LOC Source") }}
-{{ number_field("I_Approx_LOC_Test","Approx LOC Test") }}
-{{ number_field("I_Approx_Code_Complexity","Approx Code Complexity") }}
-{{ number_field("I_No_of_Interfaces_Impacted","No of Interfaces Impacted") }}
-{{ select_field("I_Interface_Complexity","Interface Complexity",[1,2,3]) }}
-{{ number_field("I_Interfaces_Added","Interfaces Added") }}
-{{ number_field("I_Interfaces_Updated","Interfaces Updated") }}
-{{ number_field("I_Interfaces_Deleted","Interfaces Deleted") }}
-{{ select_field("I_Integration_Complexity","Integration Complexity",[1,2,3]) }}
-{{ number_field("I_CrossComponent_Dependencies","Cross Component Dependencies") }}
-{{ select_field("I_OAM_Simulator_Change","OAM Simulator Change",[0,1]) }}
-{{ number_field("I_UT_Count","UT Count") }}
-{{ number_field("I_PYSCT_Count","PYSCT Count") }}
-{{ number_field("I_New_Test_Cases","New Test Cases") }}
-{{ select_field("I_Test_Case_Complexity","Test Case Complexity",[1,2,3]) }}
-{{ number_field("I_Test_Coverage","Test Coverage") }}
-{{ number_field("I_Legacy_Test_Coverage","Legacy Test Coverage") }}
-{{ select_field("I_ICFS_Design_Complexity","ICFS Design Complexity",[1,2,3]) }}
-{{ select_field("I_PM_impact","PM Impact",[0,1]) }}
-{{ select_field("I_CM_impact","CM Impact",[0,1]) }}
-{{ select_field("I_FM_impact","FM Impact",[0,1]) }}
-{{ select_field("I_Tech_Lead_Support","Tech Lead Support",[0,1]) }}
+  <h2 class="section-heading">Implementation Inputs</h2>
 
-<div class="section-action">
-  <button class="primary-btn">Calculate Implementation</button>
-</div>
+  {{ number_field("I_No_of_UserStories","No of User Stories") }}
+  {{ select_field("I_Story_Complexity","Story Complexity",[1,2,3]) }}
+  {{ select_field("I_Design_Complexity","Design Complexity",[1,2,3]) }}
+  {{ select_field("I_Meta_Complexity","Meta Complexity",[1,2,3]) }}
+  {{ number_field("I_Features_Impacted","Features Impacted") }}
+  {{ number_field("I_Files_Impacted","Files Impacted") }}
+  {{ number_field("I_Approx_LOC_Source","Approx LOC Source") }}
+  {{ number_field("I_Approx_LOC_Test","Approx LOC Test") }}
+  {{ number_field("I_Approx_Code_Complexity","Approx Code Complexity") }}
+  {{ number_field("I_No_of_Interfaces_Impacted","No of Interfaces Impacted") }}
+  {{ select_field("I_Interface_Complexity","Interface Complexity",[1,2,3]) }}
+  {{ number_field("I_Interfaces_Added","Interfaces Added") }}
+  {{ number_field("I_Interfaces_Updated","Interfaces Updated") }}
+  {{ number_field("I_Interfaces_Deleted","Interfaces Deleted") }}
+  {{ select_field("I_Integration_Complexity","Integration Complexity",[1,2,3]) }}
+  {{ number_field("I_CrossComponent_Dependencies","Cross Component Dependencies") }}
+  {{ select_field("I_OAM_Simulator_Change","OAM Simulator Change",[0,1]) }}
+  {{ number_field("I_UT_Count","UT Count") }}
+  {{ number_field("I_PYSCT_Count","PYSCT Count") }}
+  {{ number_field("I_New_Test_Cases","New Test Cases") }}
+  {{ select_field("I_Test_Case_Complexity","Test Case Complexity",[1,2,3]) }}
+  {{ number_field("I_Test_Coverage","Test Coverage") }}
+  {{ number_field("I_Legacy_Test_Coverage","Legacy Test Coverage") }}
+  {{ select_field("I_ICFS_Design_Complexity","ICFS Design Complexity",[1,2,3]) }}
+  {{ select_field("I_PM_impact","PM Impact",[0,1]) }}
+  {{ select_field("I_CM_impact","CM Impact",[0,1]) }}
+  {{ select_field("I_FM_impact","FM Impact",[0,1]) }}
+  {{ select_field("I_Tech_Lead_Support","Tech Lead Support",[0,1]) }}
 
-{% if effort is not none %}
-<div class="final-result">
-  Implementation Effort: <strong>{{ effort }} hrs</strong>
-</div>
-{% endif %}
+  <div class="section-action">
+    <button class="primary-btn">Calculate Implementation</button>
+  </div>
 
-<a href="/" class="history-link">← Back to Home</a>
+  {% if effort is not none %}
+  <div class="final-result">
+    Implementation Effort: <strong>{{ effort }} hrs</strong>
+  </div>
+  {% endif %}
 
 </form>
+
+<a href="/" class="history-link">← Back to Home</a>
 
 </body>
 </html>
