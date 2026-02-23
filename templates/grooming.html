@@ -49,35 +49,53 @@
   </div>
 
 {% macro number_field(name, label, tooltip="") %}
-<div class="form-row">
-  <label>
-    {{ label }}
-    {% if tooltip %}
-    <span class="info-icon">ⓘ
-      <span class="tooltip-text">{{ tooltip }}</span>
-    </span>
-    {% endif %}
-  </label>
-  <input type="number" name="{{ name }}" required>
+<div class="form-row two-column">
+
+  <div class="field-left">
+    <label>
+      {{ label }}
+      {% if tooltip %}
+      <span class="info-icon">ⓘ
+        <span class="tooltip-text">{{ tooltip }}</span>
+      </span>
+      {% endif %}
+    </label>
+    <input type="number" name="{{ name }}" required>
+  </div>
+
+  <div class="field-right">
+    <label>Note</label>
+    <input type="text" name="{{ name }}_note" placeholder="Optional note...">
+  </div>
+
 </div>
 {% endmacro %}
 
 {% macro select_field(name, label, options, tooltip="") %}
-<div class="form-row">
-  <label>
-    {{ label }}
-    {% if tooltip %}
-    <span class="info-icon">ⓘ
-      <span class="tooltip-text">{{ tooltip }}</span>
-    </span>
-    {% endif %}
-  </label>
-  <select name="{{ name }}" required>
-    <option value="0">0</option>
-    {% for o in options %}
+<div class="form-row two-column">
+
+  <div class="field-left">
+    <label>
+      {{ label }}
+      {% if tooltip %}
+      <span class="info-icon">ⓘ
+        <span class="tooltip-text">{{ tooltip }}</span>
+      </span>
+      {% endif %}
+    </label>
+    <select name="{{ name }}" required>
+      <option value="0">0</option>
+      {% for o in options %}
       <option value="{{ o }}">{{ o }}</option>
-    {% endfor %}
-  </select>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="field-right">
+    <label>Note</label>
+    <input type="text" name="{{ name }}_note" placeholder="Optional note...">
+  </div>
+
 </div>
 {% endmacro %}
 

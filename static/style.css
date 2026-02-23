@@ -862,3 +862,31 @@ input, select {
 .close-modal:hover {
     color: #fff;
 }
+.result-row {
+    display: grid;
+    grid-template-columns: 60% 40%;
+    gap: 20px;
+    padding: 10px 15px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.result-row:last-child {
+    border-bottom: none;
+}
+.result-label {
+    word-break: normal;
+    overflow-wrap: break-word;
+    white-space: normal;
+}
+
+.result-value {
+    flex: 1;
+    text-align: right;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+}
+.result-card {
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    overflow: hidden;
+}

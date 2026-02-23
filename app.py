@@ -5,7 +5,6 @@ import pandas as pd
 import os
 from datetime import datetime
 from flask import Flask, redirect, render_template, request, session
-
 app = Flask(__name__)
 app.secret_key = "super-secret-key"
 EXCEL_PATH = "Effort_Estimation_Grooming_Implementation_FINAL.xlsx"
@@ -121,7 +120,24 @@ def grooming():
 
         row.update(input_data)
         save_to_sheet("Grooming", row)
+        # -------- SAVE GROOMING NOTES --------
+        notes_rows = []
 
+        for f in GROOMING_FEATURES:
+            field_name = f"G_{f}"
+            note_value = request.form.get(f"{field_name}_note", "").strip()
+
+            if note_value != "":
+                notes_rows.append({
+                    "Feature_ID": Feature_ID,
+                    "Sheet": "Grooming",
+                    "Field_Name": field_name,
+                    "Note": note_value,
+                    "Time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                })
+
+        for note_row in notes_rows:
+            save_to_sheet("Notes", note_row)
         session["modal_result"] = effort
         return redirect("/grooming")
 
@@ -161,6 +177,25 @@ def implementation():
         row.update(input_data)
         save_to_sheet("Implementation", row)
 
+        # -------- SAVE NOTES TO NOTES SHEET --------
+        notes_rows = []
+
+        for f in IMPLEMENTATION_FEATURES:
+            field_name = f"I_{f}"
+            note_value = request.form.get(f"{field_name}_note", "").strip()
+
+            if note_value != "":
+                notes_rows.append({
+                    "Feature_ID": Feature_ID,
+                    "Sheet": "Implementation",
+                    "Field_Name": field_name,
+                    "Note": note_value,
+                    "Time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                })
+
+        # Save all notes
+        for note_row in notes_rows:
+            save_to_sheet("Notes", note_row)
         # ✅ STORE & REDIRECT
         session["modal_result"] = effort
         return redirect("/implementation")
@@ -349,7 +384,41 @@ def search():
 
         xls = pd.ExcelFile(EXCEL_PATH)
 
+        # ✅ Load Notes sheet ONCE
+        notes_df = None
+        if "Notes" in xls.sheet_names:
+            notes_df = pd.read_excel(EXCEL_PATH, sheet_name="Notes")
+            notes_df = notes_df.fillna("")
+            # Normalize column names
+            notes_df.columns = notes_df.columns.astype(str).str.strip()
+
+            # Find actual column names safely
+            feature_id_col_notes = None
+            sheet_col_notes = None
+            field_col_notes = None
+            note_col_notes = None
+
+            for col in notes_df.columns:
+                if col.strip().lower() == "feature_id":
+                    feature_id_col_notes = col
+                elif col.strip().lower() == "sheet":
+                    sheet_col_notes = col
+                elif col.strip().lower() == "field_name":
+                    field_col_notes = col
+                elif col.strip().lower() == "note":
+                    note_col_notes = col
+
+            # If required columns missing → skip notes safely
+            if not feature_id_col_notes or not sheet_col_notes:
+                notes_df = None
+            else:
+                notes_df[feature_id_col_notes] = notes_df[feature_id_col_notes].astype(str).str.strip()
+                notes_df[sheet_col_notes] = notes_df[sheet_col_notes].astype(str).str.strip()
         for sheet in xls.sheet_names:
+
+            # ❌ Skip Notes sheet itself
+            if sheet.strip().lower() == "notes":
+                continue
 
             df = pd.read_excel(EXCEL_PATH, sheet_name=sheet)
 
@@ -372,19 +441,13 @@ def search():
             if not feature_id_col:
                 continue
 
-            df[feature_id_col] = df[feature_id_col].apply(lambda x: str(x).strip())
-
-            if feature_name_col:
-                df[feature_name_col] = df[feature_name_col].apply(lambda x: str(x).strip())
-            else:
-                df["feature_name"] = ""
-                feature_name_col = "feature_name"
-
-            # Convert to string safely BEFORE filtering
             df[feature_id_col] = df[feature_id_col].astype(str).str.strip()
 
             if feature_name_col:
                 df[feature_name_col] = df[feature_name_col].astype(str).str.strip()
+            else:
+                df["feature_name"] = ""
+                feature_name_col = "feature_name"
 
             query_clean = str(query).strip()
 
@@ -392,11 +455,31 @@ def search():
                 (df[feature_id_col] == query_clean) |
                 (df[feature_name_col].str.lower() == query_clean.lower())
             ]
+
             if filtered.empty:
                 continue
 
             records = filtered.to_dict(orient="records")
 
+            # ✅ Attach notes properly
+            if notes_df is not None:
+                for record in records:
+
+                    fid = str(record.get(feature_id_col, "")).strip()
+                    sheet_name_clean = sheet.strip()
+
+                    field_notes = notes_df[
+                        (notes_df[feature_id_col_notes] == fid) &
+                        (notes_df[sheet_col_notes] == sheet_name_clean)
+                    ]
+
+                    for _, note_row in field_notes.iterrows():
+                        field = note_row[field_col_notes]
+                        note = note_row[note_col_notes]
+
+                        record[f"{field}_NOTE"] = note
+
+            # Clean empty values
             for record in records:
                 for k, v in record.items():
                     if v == "" or str(v).lower() == "nan":
@@ -408,6 +491,8 @@ def search():
                 grooming_results = records
             elif sheet_name == "implementation":
                 implementation_results = records
+            elif sheet_name == "final":
+                final_results = records
 
     return render_template(
         "search.html",
