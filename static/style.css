@@ -6,16 +6,49 @@ body {
   margin: 0;
   font-family: Arial, Helvetica, sans-serif;
   color: white;
-  background: url("/static/bg.jpg") center / cover no-repeat fixed;
+ 
 }
 
 body::before {
   content: "";
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.55);
   z-index: -1;
+  pointer-events: none;
+
+  background:
+    rgba(0,0,0,0.65);  /* dark overlay base */
 }
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+
+  background: linear-gradient(
+      110deg,
+      transparent 0%,
+      rgba(0,255,255,0.08) 30%,
+      rgba(0,255,255,0.20) 50%,
+      rgba(0,255,255,0.08) 70%,
+      transparent 100%
+  );
+
+  background-size: 400% 100%;
+  animation: premiumSweep 40s linear infinite;
+}
+
+@keyframes premiumSweep {
+  from {
+      background-position: -200% 0;
+  }
+  to {
+      background-position: 200% 0;
+  }
+}
+
 
 h1 {
   text-align: center;
@@ -54,16 +87,38 @@ input, select {
 
 
 .primary-btn {
-  background: #444;
-  color: white;
-  border: none;
-  padding: 10px 22px;
-  border-radius: 6px;
-  cursor: pointer;
+    background: linear-gradient(135deg, #4da6ff, #007bff);
+    border: none;
+    padding: 14px 26px;
+    border-radius: 8px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
 }
 
 .primary-btn:hover {
-  background: #666;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(77,166,255,0.4);
+}
+
+.primary-btn:active {
+    transform: translateY(0px);
+}
+
+.primary-btn::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, rgba(255,255,255,0.3), transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.primary-btn:hover::after {
+    opacity: 0.2;
 }
 
 .history-link {
@@ -643,7 +698,7 @@ input, select {
     width: 0%;
     height: 2px;
     background: #4da6ff;
-    transition: width 1s ease;
+    transition: width 0.3s ease;
 }
 
 .nav-links a:hover::after {
@@ -754,4 +809,56 @@ input, select {
         opacity: 0;
         transform: translateX(-30%);
     }
+}
+
+/* ================= RESULT MODAL ================= */
+
+.result-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.65);
+    backdrop-filter: blur(6px);
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.result-modal-content {
+    background: #1c1c1c;
+    padding: 40px 60px;
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: 0 0 30px rgba(77,166,255,0.3);
+    animation: modalFade 0.4s ease;
+}
+
+@keyframes modalFade {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.result-number {
+    font-size: 36px;
+    color: #4da6ff;
+    margin-top: 20px;
+}
+
+.close-modal {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    font-size: 24px;
+    cursor: pointer;
+    color: #aaa;
+}
+
+.close-modal:hover {
+    color: #fff;
 }

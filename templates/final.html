@@ -4,7 +4,24 @@
 
 {% block content %}
 
-<body>
+<!-- ================= RESULT MODAL ================= -->
+
+<div id="resultModal"
+     class="result-modal"
+     data-result="{{ effort if effort is defined else (final_effort if final_effort is defined else '') }}">
+
+  <div class="result-modal-content">
+    <span class="close-modal">&times;</span>
+
+    <h2>Estimation Result</h2>
+
+    <div class="result-number">
+        <strong id="modalCount">0</strong> hrs
+    </div>
+
+  </div>
+</div>
+
 
 <h1>Final Effort Review</h1>
 
@@ -38,13 +55,6 @@
     </form>
 </div>
 
-<!-- ================= FINAL RESULT ================= -->
-
-{% if final_effort %}
-<div class="top-result">
-    <strong>Final Effort: {{ final_effort }} hrs</strong>
-</div>
-{% endif %}
 
 <!-- ================= TABLE SECTION ================= -->
 
@@ -140,5 +150,4 @@
     <a href="/" class="history-link">← Back to Home</a>
 </div>
 
-</body>
 {% endblock %}

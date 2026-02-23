@@ -35,5 +35,92 @@
     {% block content %}{% endblock %}
 </div>
 
+
+<!-- ================= RESULT MODAL ================= -->
+
+<div id="resultModal"
+     class="result-modal"
+     data-result="{{ effort or '' }}">
+
+  <div class="result-modal-content">
+
+      <span class="close-modal">&times;</span>
+
+      <h2>Estimation Result</h2>
+
+      <div class="result-number">
+          <strong id="modalCount">0</strong> hrs
+      </div>
+
+  </div>
+</div>
+
+
+<!-- ================= SCRIPT ================= -->
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+
+    const modal = document.getElementById("resultModal");
+    const modalCount = document.getElementById("modalCount");
+    const closeBtn = document.querySelector(".close-modal");
+
+    if (!modal) return;
+
+    // Show modal if result exists
+    const resultValue = modal.getAttribute("data-result");
+
+    if (resultValue !== null && resultValue !== "") {
+
+        const target = parseFloat(resultValue);
+
+        if (!isNaN(target)) {
+
+            modal.style.display = "flex";
+
+            const duration = 1500;
+            const startTime = performance.now();
+
+            function animate(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const value = (target * progress).toFixed(2);
+                modalCount.textContent = value;
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    modalCount.textContent = target.toFixed(2);
+                }
+            }
+
+            requestAnimationFrame(animate);
+        }
+}
+
+    // Close on X click
+    if (closeBtn) {
+        closeBtn.addEventListener("click", function() {
+            modal.style.display = "none";
+        });
+    }
+
+    // Close on outside click
+    modal.addEventListener("click", function(e) {
+        if (e.target === modal) {
+            modal.style.display = "none";
+        }
+    });
+
+    // Close on ESC key
+    document.addEventListener("keydown", function(e) {
+        if (e.key === "Escape") {
+            modal.style.display = "none";
+        }
+    });
+
+});
+</script>
+
 </body>
 </html>

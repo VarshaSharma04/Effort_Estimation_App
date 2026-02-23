@@ -4,6 +4,24 @@
 
 {% block content %}
 
+<!-- ================= RESULT MODAL ================= -->
+
+<div id="resultModal"
+     class="result-modal"
+     data-result="{{ effort if effort is defined else (final_effort if final_effort is defined else '') }}">
+
+  <div class="result-modal-content">
+    <span class="close-modal">&times;</span>
+
+    <h2>Estimation Result</h2>
+
+    <div class="result-number">
+        <strong id="modalCount">0</strong> hrs
+    </div>
+
+  </div>
+</div>
+</div>
 <body>
 
 <h1>Implementation Effort Estimation</h1>
@@ -157,11 +175,6 @@ Descriptive name used in reporting and history.
 <button class="primary-btn">Calculate Implementation</button>
 </div>
 
-{% if effort is not none %}
-<div class="final-result">
-Implementation Effort: <strong>{{ effort }} hrs</strong>
-</div>
-{% endif %}
 
 </form>
 

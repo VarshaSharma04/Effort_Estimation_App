@@ -3,6 +3,21 @@
 {% block title %}Grooming Effort Estimation{% endblock %}
 
 {% block content %}
+<div id="resultModal"
+     class="result-modal"
+     data-result="{{ effort if effort is defined else (final_effort if final_effort is defined else '') }}">
+
+  <div class="result-modal-content">
+    <span class="close-modal">&times;</span>
+
+    <h2>Estimation Result</h2>
+
+    <div class="result-number">
+        <strong id="modalCount">0</strong> hrs
+    </div>
+
+  </div>
+</div>
 <body>
 
 <h1>Grooming Effort Estimation</h1>
@@ -138,11 +153,7 @@
   <button class="primary-btn">Calculate Grooming</button>
 </div>
 
-{% if effort is not none %}
-<div class="final-result">
-  Grooming Effort: <strong>{{ effort }} hrs</strong>
-</div>
-{% endif %}
+
 
 <a href="/" class="history-link">← Back to Home</a>
 

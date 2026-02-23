@@ -4,9 +4,10 @@ import numpy as np
 import pandas as pd
 import os
 from datetime import datetime
+from flask import Flask, redirect, render_template, request, session
 
 app = Flask(__name__)
-
+app.secret_key = "super-secret-key"
 EXCEL_PATH = "Effort_Estimation_Grooming_Implementation_FINAL.xlsx"
 
 # Load models
@@ -91,14 +92,13 @@ def home():
 
 # ================= GROOMING =================
 @app.route("/grooming", methods=["GET", "POST"])
+@app.route("/grooming", methods=["GET", "POST"])
 def grooming():
-    effort = None
 
     if request.method == "POST":
 
         Feature_ID = request.form.get("Feature_ID", "").strip()
         Feature_Name = request.form.get("Feature_Name", "").strip()
-
 
         values = []
         input_data = {}
@@ -120,16 +120,19 @@ def grooming():
         }
 
         row.update(input_data)
-
         save_to_sheet("Grooming", row)
 
-    return render_template("grooming.html", effort=effort)
+        session["modal_result"] = effort
+        return redirect("/grooming")
 
+    # 🚨 IMPORTANT PART
+    effort = session.pop("modal_result", None)
+
+    return render_template("grooming.html", effort=effort)
 
 # ================= IMPLEMENTATION =================
 @app.route("/implementation", methods=["GET", "POST"])
 def implementation():
-    effort = None
 
     if request.method == "POST":
 
@@ -156,21 +159,26 @@ def implementation():
         }
 
         row.update(input_data)
-
         save_to_sheet("Implementation", row)
 
-    return render_template("implementation.html", effort=effort)
+        # ✅ STORE & REDIRECT
+        session["modal_result"] = effort
+        return redirect("/implementation")
 
+    modal_result = session.pop("modal_result", None)
+
+    return render_template("implementation.html", effort=modal_result)
 
 # ================= FINAL =================
 @app.route("/final", methods=["GET", "POST"])
 def final():
 
+    action = None
     grooming_record = None
     implementation_record = None
     final_effort = None
     feature_id = ""
-    query = ""
+    query = request.args.get("feature_id", "")  # ✅ KEEP THIS
 
     if request.method == "POST":
 
@@ -178,24 +186,18 @@ def final():
         action = request.form.get("action")
 
         if query and os.path.exists(EXCEL_PATH):
-
             with pd.ExcelFile(EXCEL_PATH) as xls:
 
                 # ---------- GROOMING ----------
                 if "Grooming" in xls.sheet_names:
-
                     g_df = pd.read_excel(EXCEL_PATH, sheet_name="Grooming")
-
                     if not g_df.empty:
 
-                        # Remove duplicate columns only (no renaming!)
                         g_df = g_df.loc[:, ~g_df.columns.duplicated()]
                         g_df = g_df.fillna("")
 
-                        # Get actual column names safely
                         fid_col = get_column_name(g_df, "feature_id")
                         fname_col = get_column_name(g_df, "feature_name")
-                        geff_col = get_column_name(g_df, "grooming_effort")
 
                         if fid_col:
                             g_df[fid_col] = g_df[fid_col].apply(lambda x: str(x).strip())
@@ -211,11 +213,10 @@ def final():
                             if not match.empty:
                                 grooming_record = match.iloc[0].to_dict()
                                 feature_id = grooming_record.get(fid_col, "")
+
                 # ---------- IMPLEMENTATION ----------
                 if "Implementation" in xls.sheet_names:
-
                     i_df = pd.read_excel(EXCEL_PATH, sheet_name="Implementation")
-
                     if not i_df.empty:
 
                         i_df = i_df.loc[:, ~i_df.columns.duplicated()]
@@ -223,7 +224,6 @@ def final():
 
                         fid_col = get_column_name(i_df, "feature_id")
                         fname_col = get_column_name(i_df, "feature_name")
-                        ieff_col = get_column_name(i_df, "implementation_effort")
 
                         if fid_col:
                             i_df[fid_col] = i_df[fid_col].apply(lambda x: str(x).strip())
@@ -244,15 +244,11 @@ def final():
 
             g_effort = safe(grooming_record.get("grooming_effort"))
             i_effort = safe(implementation_record.get("implementation_effort"))
-
             final_effort = round(g_effort + i_effort, 2)
 
-            g_feature_id = get_value_case_insensitive(grooming_record, "feature_id")
-            g_feature_name = get_value_case_insensitive(grooming_record, "feature_name")
-
             row = {
-                "feature_id": g_feature_id,
-                "feature_name": g_feature_name,
+                "feature_id": feature_id,
+                "feature_name": get_value_case_insensitive(grooming_record, "feature_name"),
                 "grooming_effort": g_effort,
                 "implementation_effort": i_effort,
                 "final_effort": final_effort,
@@ -261,12 +257,18 @@ def final():
 
             save_to_sheet("Final", row)
 
+            session["modal_result"] = final_effort
+            return redirect(f"/final?feature_id={query}")
+
+    # ✅ ONLY POP HERE
+    modal_result = session.pop("modal_result", None)
+
     return render_template(
         "final.html",
         grooming=grooming_record,
         implementation=implementation_record,
-        final_effort=final_effort,
-        feature_id=query
+        final_effort=modal_result,
+        feature_id=query,
     )
 
 
