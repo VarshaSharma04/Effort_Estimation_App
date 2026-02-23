@@ -1,37 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <title>Grooming Estimation</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
+
 <body>
 
 <h1>Grooming Effort Estimation</h1>
 
-
 <form class="effort-form" method="post">
+
   <div class="form-row">
-    <label>Feature ID</label>
+    <label>
+      Feature ID
+      <span class="info-icon">ⓘ
+        <span class="tooltip-text">
+          Identifies each feature uniquely; required for tracking and ML model mapping.
+        </span>
+      </span>
+    </label>
     <input type="text" name="Feature_ID" required>
   </div>
 
   <div class="form-row">
-    <label>Feature Name</label>
+    <label>
+      Feature Name
+      <span class="info-icon">ⓘ
+        <span class="tooltip-text">
+          Descriptive name of the feature used for reporting and search.
+        </span>
+      </span>
+    </label>
     <input type="text" name="Feature_Name" required>
   </div>
 
-{% macro number_field(name, label) %}
+{% macro number_field(name, label, tooltip="") %}
 <div class="form-row">
-  <label>{{ label }}</label>
+  <label>
+    {{ label }}
+    {% if tooltip %}
+    <span class="info-icon">ⓘ
+      <span class="tooltip-text">{{ tooltip }}</span>
+    </span>
+    {% endif %}
+  </label>
   <input type="number" name="{{ name }}" required>
 </div>
 {% endmacro %}
 
-{% macro select_field(name, label, options) %}
+{% macro select_field(name, label, options, tooltip="") %}
 <div class="form-row">
-  <label>{{ label }}</label>
+  <label>
+    {{ label }}
+    {% if tooltip %}
+    <span class="info-icon">ⓘ
+      <span class="tooltip-text">{{ tooltip }}</span>
+    </span>
+    {% endif %}
+  </label>
   <select name="{{ name }}" required>
     <option value="0">0</option>
     {% for o in options %}
@@ -41,31 +69,73 @@
 </div>
 {% endmacro %}
 
-<!-- ===== GROOMING FIELDS ===== -->
 <h2 class="section-heading">Grooming Inputs</h2>
 
-{{ number_field("G_No_of_UserStories", "No of User Stories") }}
-{{ select_field("G_Story_Complexity", "Story Complexity", [1,2,3]) }}
-{{ select_field("G_Design_Complexity", "Design Complexity", [1,2,3]) }}
-{{ select_field("G_Meta_Complexity", "Meta Complexity", [1,2,3]) }}
-{{ number_field("G_Assumptions_Count", "Assumptions Count") }}
-{{ number_field("G_Features_Impacted", "Features Impacted") }}
-{{ select_field("G_Codebase_Study_Required", "Codebase Study Required", [1]) }}
-{{ number_field("G_No_of_Interfaces_Impacted", "Interfaces Impacted") }}
-{{ select_field("G_Interface_Complexity", "Interface Complexity", [1,2,3]) }}
-{{ select_field("G_Existing_Design_Study_Required", "Existing Design Study Required", [1]) }}
-{{ number_field("G_CrossComponent_Dependencies", "Cross Component Dependencies") }}
-{{ select_field("G_ICFS_Design_Complexity", "ICFS Design Complexity", [1,2,3]) }}
-{{ select_field("G_META_Impact_Level", "META Impact Level", [1,2,3]) }}
-{{ select_field("G_Cloud_Deployment", "Cloud Deployment", [1]) }}
-{{ select_field("G_Classical_Deployment", "Classical Deployment", [1]) }}
-{{ select_field("G_PM_impact", "PM Impact", [1]) }}
-{{ select_field("G_CM_impact", "CM Impact", [1]) }}
-{{ select_field("G_FM_impact", "FM Impact", [1]) }}
-{{ select_field("G_Fronthaul_impact", "Fronthaul Impact", [1,2,3]) }}
-{{ select_field("G_Backhaul_impact", "Backhaul Impact", [1,2,3]) }}
-{{ select_field("G_Tech_Lead_Support", "Tech Lead Support", [1]) }}
-{{ number_field("G_Open_Points_Percentage", "Open Points Percentage") }}
+{{ number_field("G_No_of_UserStories","No of User Stories",
+"More user stories increase requirements analysis, discussions, and estimation effort.") }}
+
+{{ select_field("G_Story_Complexity","Story Complexity",[1,2,3],
+"Higher complexity requires deeper investigation and design discussions.") }}
+
+{{ select_field("G_Design_Complexity","Design Complexity",[1,2,3],
+"Complex design increases grooming discussions and architectural planning time.") }}
+
+{{ select_field("G_Meta_Complexity","Meta Complexity",[1,2,3],
+"META changes increase schema updates, ICFS impact analysis, and testing considerations.") }}
+
+{{ number_field("G_Assumptions_Count","Assumptions Count",
+"More assumptions increase uncertainty and discussion cycles.") }}
+
+{{ number_field("G_Features_Impacted","Features Impacted",
+"More impacted features increase integration and regression impact analysis.") }}
+
+{{ select_field("G_Codebase_Study_Required","Codebase Study Required",[1],
+"If required, additional time is needed to understand existing implementation.") }}
+
+{{ number_field("G_No_of_Interfaces_Impacted","Interfaces Impacted",
+"More interfaces increase integration review and effort estimation complexity.") }}
+
+{{ select_field("G_Interface_Complexity","Interface Complexity",[1,2,3],
+"Complex interfaces increase design and validation discussions.") }}
+
+{{ select_field("G_Existing_Design_Study_Required","Existing Design Study Required",[1],
+"Requires additional effort to analyze previous design documents.") }}
+
+{{ number_field("G_CrossComponent_Dependencies","Cross Component Dependencies",
+"More components involved increase coordination and integration discussions.") }}
+
+{{ select_field("G_ICFS_Design_Complexity","ICFS Design Complexity",[1,2,3],
+"ICFS updates increase documentation and grooming complexity.") }}
+
+{{ select_field("G_META_Impact_Level","META Impact Level",[1,2,3],
+"Higher META impact increases schema-level discussions and validation effort.") }}
+
+{{ select_field("G_Cloud_Deployment","Cloud Deployment",[1],
+"Cloud flow (TRSCONFIG → TEM → TAS → TPI) increases integration complexity.") }}
+
+{{ select_field("G_Classical_Deployment","Classical Deployment",[1],
+"Classical flow (WEBEM → MCTRL → TEM → TAS → TPL) impacts effort differently.") }}
+
+{{ select_field("G_PM_impact","PM Impact",[1],
+"Performance counter impact increases analysis and validation planning.") }}
+
+{{ select_field("G_CM_impact","CM Impact",[1],
+"Configuration changes increase design and validation effort.") }}
+
+{{ select_field("G_FM_impact","FM Impact",[1],
+"Alarm impact requires additional grooming discussions for flow handling.") }}
+
+{{ select_field("G_Fronthaul_impact","Fronthaul Impact",[1,2,3],
+"Higher FH impact increases RAN-side coordination complexity.") }}
+
+{{ select_field("G_Backhaul_impact","Backhaul Impact",[1,2,3],
+"BH impact affects transport design discussions and planning.") }}
+
+{{ select_field("G_Tech_Lead_Support","Tech Lead Support",[1],
+"If needed, increases grooming cycles due to architectural guidance.") }}
+
+{{ number_field("G_Open_Points_Percentage","Open Points Percentage",
+"Represents uncertainty level and unresolved design discussions.") }}
 
 <div class="section-action">
   <button class="primary-btn">Calculate Grooming</button>
@@ -80,6 +150,5 @@
 <a href="/" class="history-link">← Back to Home</a>
 
 </form>
-
 </body>
 </html>

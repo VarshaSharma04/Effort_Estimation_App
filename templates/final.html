@@ -73,8 +73,23 @@
                 </tr>
                 {% endif %}
             {% endfor %}
-
         </table>
+
+        <!-- ✅ EDIT BUTTON ADDED SAFELY -->
+        {% set fid = grooming.get('feature_id') 
+           or grooming.get('Feature_ID') 
+           or grooming.get('FEATURE_ID') %}
+
+        {% if fid %}
+        <div class="section-action">
+            <a href="/edit/Grooming/{{ fid }}?next=final">
+                <button type="button" class="secondary-btn">
+                    Edit Grooming
+                </button>
+            </a>
+        </div>
+        {% endif %}
+
     </div>
     {% endif %}
 
@@ -98,8 +113,23 @@
                 </tr>
                 {% endif %}
             {% endfor %}
-
         </table>
+
+        <!-- ✅ EDIT BUTTON ADDED SAFELY -->
+        {% set fid = implementation.get('feature_id') 
+           or implementation.get('Feature_ID') 
+           or implementation.get('FEATURE_ID') %}
+
+        {% if fid %}
+        <div class="section-action">
+            <a href="/edit/Implementation/{{ fid }}?next=final">
+                <button type="button" class="secondary-btn">
+                    Edit Implementation
+                </button>
+            </a>
+        </div>
+        {% endif %}
+
     </div>
     {% endif %}
 

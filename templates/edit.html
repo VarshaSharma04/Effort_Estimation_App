@@ -12,10 +12,17 @@
 
 <form method="POST" style="max-width:900px; margin:40px auto;">
 
-    {% for key, value in data.items() %}
+    {% for key, value in row.items() %}
         <div class="form-row">
             <label>{{ key }}</label>
-            <input type="text" name="{{ key }}" value="{{ value }}">
+
+            {% if key|lower in ["feature_id", "time"] %}
+                <!-- Protected fields: readonly -->
+                <input type="text" name="{{ key }}" value="{{ value }}" readonly>
+            {% else %}
+                <input type="text" name="{{ key }}" value="{{ value }}">
+            {% endif %}
+
         </div>
     {% endfor %}
 

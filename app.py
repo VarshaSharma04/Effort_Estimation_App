@@ -26,13 +26,36 @@ def safe(v):
 
 
 def save_to_sheet(sheet_name, row_dict):
+
     new_row_df = pd.DataFrame([row_dict])
 
     if os.path.exists(EXCEL_PATH):
 
         try:
             existing_df = pd.read_excel(EXCEL_PATH, sheet_name=sheet_name)
+
+            # ---- Normalize existing columns (for comparison only) ----
+            existing_cols_map = {
+                col.strip().lower(): col
+                for col in existing_df.columns
+            }
+
+            # ---- Rename new_row_df columns to match existing ones ----
+            for col in new_row_df.columns:
+                col_lower = col.strip().lower()
+                if col_lower in existing_cols_map:
+                    # Rename to exact existing column name
+                    new_row_df.rename(
+                        columns={col: existing_cols_map[col_lower]},
+                        inplace=True
+                    )
+
+            # ---- Ensure no duplicate columns ----
+            new_row_df = new_row_df.loc[:, ~new_row_df.columns.duplicated()]
+            existing_df = existing_df.loc[:, ~existing_df.columns.duplicated()]
+
             combined_df = pd.concat([new_row_df, existing_df], ignore_index=True)
+
         except:
             combined_df = new_row_df
 
@@ -43,7 +66,22 @@ def save_to_sheet(sheet_name, row_dict):
         with pd.ExcelWriter(EXCEL_PATH, engine="openpyxl") as writer:
             new_row_df.to_excel(writer, sheet_name=sheet_name, index=False)
 
+# =========HELPER FUNCTION TO CLEAN AND NORMALIZE DATAFRAMES=========
+def get_column_name(df, target_name):
+    """
+    Returns the actual column name in df matching target_name
+    irrespective of case or spaces.
+    """
+    for col in df.columns:
+        if col.strip().lower() == target_name.lower():
+            return col
+    return None
 
+def get_value_case_insensitive(record, target):
+    for key in record.keys():
+        if key.strip().lower() == target.lower():
+            return record[key]
+    return ""
 # ================= ROUTES =================
 
 @app.route("/")
@@ -145,50 +183,76 @@ def final():
 
                 # ---------- GROOMING ----------
                 if "Grooming" in xls.sheet_names:
+
                     g_df = pd.read_excel(EXCEL_PATH, sheet_name="Grooming")
-                    g_df.columns = g_df.columns.str.strip().str.lower()
-                    g_df = g_df.fillna("")
 
-                    g_df["feature_id"] = g_df["feature_id"].astype(str).str.strip()
-                    g_df["feature_name"] = g_df["feature_name"].astype(str).str.strip()
+                    if not g_df.empty:
 
-                    match = g_df[
-                        (g_df["feature_id"] == query) |
-                        (g_df["feature_name"].str.lower() == query.lower())
-                    ]
+                        # Remove duplicate columns only (no renaming!)
+                        g_df = g_df.loc[:, ~g_df.columns.duplicated()]
+                        g_df = g_df.fillna("")
 
-                    if not match.empty:
-                        grooming_record = match.iloc[0].to_dict()
-                        feature_id = grooming_record.get("feature_id", "")
+                        # Get actual column names safely
+                        fid_col = get_column_name(g_df, "feature_id")
+                        fname_col = get_column_name(g_df, "feature_name")
+                        geff_col = get_column_name(g_df, "grooming_effort")
 
+                        if fid_col:
+                            g_df[fid_col] = g_df[fid_col].apply(lambda x: str(x).strip())
+                        if fname_col:
+                            g_df[fname_col] = g_df[fname_col].apply(lambda x: str(x).strip())
+
+                        if fid_col and fname_col:
+                            match = g_df[
+                                (g_df[fid_col] == query) |
+                                (g_df[fname_col].str.lower() == query.lower())
+                            ]
+
+                            if not match.empty:
+                                grooming_record = match.iloc[0].to_dict()
+                                feature_id = grooming_record.get(fid_col, "")
                 # ---------- IMPLEMENTATION ----------
                 if "Implementation" in xls.sheet_names:
+
                     i_df = pd.read_excel(EXCEL_PATH, sheet_name="Implementation")
-                    i_df.columns = i_df.columns.str.strip().str.lower()
-                    i_df = i_df.fillna("")
 
-                    i_df["feature_id"] = i_df["feature_id"].astype(str).str.strip()
-                    i_df["feature_name"] = i_df["feature_name"].astype(str).str.strip()
+                    if not i_df.empty:
 
-                    match = i_df[
-                        (i_df["feature_id"] == feature_id) |
-                        (i_df["feature_name"].str.lower() == query.lower())
-                    ]
+                        i_df = i_df.loc[:, ~i_df.columns.duplicated()]
+                        i_df = i_df.fillna("")
 
-                    if not match.empty:
-                        implementation_record = match.iloc[0].to_dict()
+                        fid_col = get_column_name(i_df, "feature_id")
+                        fname_col = get_column_name(i_df, "feature_name")
+                        ieff_col = get_column_name(i_df, "implementation_effort")
+
+                        if fid_col:
+                            i_df[fid_col] = i_df[fid_col].apply(lambda x: str(x).strip())
+                        if fname_col:
+                            i_df[fname_col] = i_df[fname_col].apply(lambda x: str(x).strip())
+
+                        if fid_col and fname_col:
+                            match = i_df[
+                                (i_df[fid_col] == feature_id) |
+                                (i_df[fname_col].str.lower() == query.lower())
+                            ]
+
+                            if not match.empty:
+                                implementation_record = match.iloc[0].to_dict()
 
         # ---------- CALCULATE ----------
         if action == "calculate" and grooming_record and implementation_record:
 
-            g_effort = float(grooming_record.get("grooming_effort", 0))
-            i_effort = float(implementation_record.get("implementation_effort", 0))
+            g_effort = safe(grooming_record.get("grooming_effort"))
+            i_effort = safe(implementation_record.get("implementation_effort"))
 
             final_effort = round(g_effort + i_effort, 2)
 
+            g_feature_id = get_value_case_insensitive(grooming_record, "feature_id")
+            g_feature_name = get_value_case_insensitive(grooming_record, "feature_name")
+
             row = {
-                "feature_id": grooming_record.get("feature_id", ""),
-                "feature_name": grooming_record.get("feature_name", ""),
+                "feature_id": g_feature_id,
+                "feature_name": g_feature_name,
                 "grooming_effort": g_effort,
                 "implementation_effort": i_effort,
                 "final_effort": final_effort,
@@ -290,51 +354,58 @@ def search():
             if df.empty:
                 continue
 
-            # Normalize columns safely
-            df.columns = df.columns.astype(str).str.strip().str.lower()
-
-            # Remove duplicate columns completely
+            df.columns = df.columns.astype(str).str.strip()
             df = df.loc[:, ~df.columns.duplicated()]
-
             df = df.fillna("")
 
-            # Ensure required columns exist
-            if "feature_id" not in df.columns:
+            feature_id_col = None
+            feature_name_col = None
+
+            for col in df.columns:
+                if col.strip().lower() == "feature_id":
+                    feature_id_col = col
+                if col.strip().lower() == "feature_name":
+                    feature_name_col = col
+
+            if not feature_id_col:
                 continue
 
-            # Convert safely WITHOUT using .str on column selection
-            df["feature_id"] = df["feature_id"].apply(lambda x: str(x).strip())
+            df[feature_id_col] = df[feature_id_col].apply(lambda x: str(x).strip())
 
-            if "feature_name" in df.columns:
-                df["feature_name"] = df["feature_name"].apply(lambda x: str(x).strip())
+            if feature_name_col:
+                df[feature_name_col] = df[feature_name_col].apply(lambda x: str(x).strip())
             else:
                 df["feature_name"] = ""
+                feature_name_col = "feature_name"
 
-            # Exact match only
+            # Convert to string safely BEFORE filtering
+            df[feature_id_col] = df[feature_id_col].astype(str).str.strip()
+
+            if feature_name_col:
+                df[feature_name_col] = df[feature_name_col].astype(str).str.strip()
+
+            query_clean = str(query).strip()
+
             filtered = df[
-                (df["feature_id"] == query) |
-                (df["feature_name"].str.lower() == query.lower())
+                (df[feature_id_col] == query_clean) |
+                (df[feature_name_col].str.lower() == query_clean.lower())
             ]
-
             if filtered.empty:
                 continue
 
             records = filtered.to_dict(orient="records")
 
-            # Replace empty with ---
             for record in records:
                 for k, v in record.items():
                     if v == "" or str(v).lower() == "nan":
                         record[k] = "---"
 
-            if sheet.lower() == "grooming":
+            sheet_name = sheet.strip().lower()
+
+            if sheet_name == "grooming":
                 grooming_results = records
-
-            elif sheet.lower() == "implementation":
+            elif sheet_name == "implementation":
                 implementation_results = records
-
-            elif sheet.lower() == "final":
-                final_results = records
 
     return render_template(
         "search.html",
@@ -342,10 +413,11 @@ def search():
         implementation_results=implementation_results,
         final_results=final_results
     )
-
 # ================= EDIT =================
 @app.route("/edit/<sheet>/<feature_id>", methods=["GET", "POST"])
 def edit(sheet, feature_id):
+
+    next_page = request.args.get("next", "search")  # 👈 capture source
 
     if not os.path.exists(EXCEL_PATH):
         return "Excel file not found"
@@ -355,17 +427,22 @@ def edit(sheet, feature_id):
     if df.empty:
         return "Sheet is empty"
 
-    # Normalize column names
     df.columns = df.columns.str.strip()
 
-    if "feature_id" not in df.columns:
+    # Find feature_id column irrespective of case
+    feature_id_col = None
+    for col in df.columns:
+        if col.strip().lower() == "feature_id":
+            feature_id_col = col
+            break
+
+    if not feature_id_col:
         return "feature_id column missing"
 
-    df["feature_id"] = df["feature_id"].fillna("").astype(str).str.strip()
-
+    df[feature_id_col] = df[feature_id_col].fillna("").astype(str).str.strip()
     feature_id = str(feature_id).strip()
 
-    record = df[df["feature_id"] == feature_id]
+    record = df[df[feature_id_col] == feature_id]
 
     if record.empty:
         return "Record not found"
@@ -374,12 +451,16 @@ def edit(sheet, feature_id):
 
         for col in df.columns:
             if col in request.form:
-                df.loc[df["feature_id"] == feature_id, col] = request.form[col]
+                df.loc[df[feature_id_col] == feature_id, col] = request.form[col]
 
         with pd.ExcelWriter(EXCEL_PATH, engine="openpyxl", mode="a", if_sheet_exists="replace") as writer:
             df.to_excel(writer, sheet_name=sheet, index=False)
 
-        return redirect("/search")
+        # 👇 Redirect back properly
+        if next_page == "final":
+            return redirect("/final")
+        else:
+            return redirect("/search")
 
     row_data = record.iloc[0].fillna("---").to_dict()
 

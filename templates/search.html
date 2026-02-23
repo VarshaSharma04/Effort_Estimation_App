@@ -40,76 +40,71 @@
 
     <!-- GROOMING RESULTS -->
     {% if grooming_results %}
-        <h2 class="section-heading">Grooming Results</h2>
+    <h2 class="section-heading">Grooming Results</h2>
 
-        <table class="review-table">
-            <thead>
-                <tr>
-                    {% for col in grooming_results[0].keys() %}
-                        <th>{{ col }}</th>
-                    {% endfor %}
-                </tr>
-            </thead>
-            <tbody>
-                {% for row in grooming_results %}
-                    <tr>
-                        {% for value in row.values() %}
-                            <td>{{ value }}</td>
-                        {% endfor %}
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    {% for row in grooming_results %}
+    <div class="result-card">
+
+        {% for key, value in row.items() %}
+            <div class="result-row">
+                <span class="result-label">
+                    {{ key.replace("_"," ").title() }}
+                </span>
+                <span class="result-value">
+                    {{ value }}
+                </span>
+            </div>
+        {% endfor %}
+
+        <div class="section-action">
+            {% set fid = row.get('feature_id') 
+            or row.get('Feature_ID') 
+            or row.get('FEATURE_ID') %}
+
+            {% if fid %}
+            <a href="/edit/Grooming/{{ fid }}?next=search">
+                <button type="button" class="secondary-btn">Edit</button>
+            </a>
+            {% endif %}
+        </div>
+
+    </div>
+    {% endfor %}
     {% endif %}
 
 
     <!-- IMPLEMENTATION RESULTS -->
     {% if implementation_results %}
-        <h2 class="section-heading">Implementation Results</h2>
+    <h2 class="section-heading">Implementation Results</h2>
 
-        <table class="review-table">
-            <thead>
-                <tr>
-                    {% for col in implementation_results[0].keys() %}
-                        <th>{{ col }}</th>
-                    {% endfor %}
-                </tr>
-            </thead>
-            <tbody>
-                {% for row in implementation_results %}
-                    <tr>
-                        {% for value in row.values() %}
-                            <td>{{ value }}</td>
-                        {% endfor %}
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% endif %}
+    {% for row in implementation_results %}
+    <div class="result-card">
 
+        {% for key, value in row.items() %}
+            <div class="result-row">
+                <span class="result-label">
+                    {{ key.replace("_"," ").title() }}
+                </span>
+                <span class="result-value">
+                    {{ value }}
+                </span>
+            </div>
+        {% endfor %}
 
-    <!-- FINAL RESULTS -->
-    {% if final_results %}
-        <h2 class="section-heading">Final Results</h2>
+        <div class="section-action">
+            {% set fid = row.get('feature_id') 
+            or row.get('Feature_ID') 
+            or row.get('FEATURE_ID') %}
 
-        <table class="review-table">
-            <thead>
-                <tr>
-                    {% for col in final_results[0].keys() %}
-                        <th>{{ col }}</th>
-                    {% endfor %}
-                </tr>
-            </thead>
-            <tbody>
-                {% for row in final_results %}
-                    <tr>
-                        {% for value in row.values() %}
-                            <td>{{ value }}</td>
-                        {% endfor %}
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+            {% if fid %}
+            <a href="/edit/Implementation/{{ fid }}?next=search">
+                <button type="button" class="secondary-btn">Edit</button>
+            </a>
+            {% endif %}
+        </div>
+
+    </div>
+    {% endfor %}
     {% endif %}
 
 </div>
