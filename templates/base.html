@@ -18,12 +18,12 @@
         </div>
 
         <div class="nav-links">
-            <a href="/">Home</a>
-            <a href="/grooming">Grooming</a>
-            <a href="/implementation">Implementation</a>
-            <a href="/final">Final</a>
-            <a href="/search">Search</a>
-            <a href="/history">History</a>
+            <a href="/" class="{% if request.path == '/' %}active{% endif %}">Home</a>
+            <a href="/grooming" class="{% if request.path == '/grooming' %}active{% endif %}">Grooming</a>
+            <a href="/implementation" class="{% if request.path == '/implementation' %}active{% endif %}">Implementation</a>
+            <a href="/final" class="{% if request.path == '/final' %}active{% endif %}">Final</a>
+            <a href="/search" class="{% if request.path == '/search' %}active{% endif %}">Search</a>
+            <a href="/history" class="{% if request.path == '/history' %}active{% endif %}">History</a>
         </div>
 
     </div>

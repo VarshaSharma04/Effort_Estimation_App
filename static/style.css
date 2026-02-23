@@ -619,18 +619,139 @@ input, select {
 }
 
 .nav-links a {
-    margin-left: 25px;
+    position: relative;
+    margin-left: 28px;
     text-decoration: none;
-    color: #ccc;
+    color: #bbb;
     font-size: 14px;
-    transition: color 0.2s ease;
+    transition: all 0.25s ease;
+    padding-bottom: 4px;
 }
 
+/* Hover Glow */
 .nav-links a:hover {
     color: #4da6ff;
+    text-shadow: 0 0 6px rgba(77,166,255,0.6);
+}
+
+/* Smooth Underline Animation */
+.nav-links a::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 0%;
+    height: 2px;
+    background: #4da6ff;
+    transition: width 1s ease;
+}
+
+.nav-links a:hover::after {
+    width: 100%;
 }
 
 /* Content spacing under navbar */
 .page-content {
     padding-top: 30px;
+}
+.nav-logo {
+    font-size: 18px;
+    font-weight: bold;
+    color: #ffffff;
+    transition: text-shadow 0.3s ease;
+}
+
+.nav-logo:hover {
+    text-shadow: 0 0 8px rgba(255,255,255,0.4);
+}
+
+/* ================= NAV LINK ENHANCEMENTS ================= */
+
+.nav-links a {
+    position: relative;
+    margin-left: 28px;
+    text-decoration: none;
+    color: #bbb;
+    font-size: 14px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+/* Soft Gradient Hover */
+.nav-links a:hover {
+    color: #4da6ff;
+    background: linear-gradient(
+        135deg,
+        rgba(77,166,255,0.12),
+        rgba(77,166,255,0.05)
+    );
+    text-shadow: 0 0 6px rgba(77,166,255,0.6);
+}
+
+/* Active Page Indicator */
+.nav-links a.active {
+    color: #4da6ff;
+    background: linear-gradient(
+        135deg,
+        rgba(77,166,255,0.18),
+        rgba(77,166,255,0.08)
+    );
+    box-shadow: 0 0 8px rgba(77,166,255,0.3);
+}
+
+/* ================= NAVBAR TOP GLOW ================= */
+
+.navbar {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background: rgba(15,15,15,0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid #2a2a2a;
+    overflow: hidden;
+}
+
+/* ================= SMOOTH NAVBAR TOP GLOW ================= */
+
+.navbar {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background: rgba(15,15,15,0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid #2a2a2a;
+    overflow: hidden;
+}
+
+.navbar::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(77,166,255,0.8),
+        transparent
+    );
+    opacity: 0;
+    animation: smoothGlow 4s ease-in-out infinite;
+}
+
+@keyframes smoothGlow {
+    0% {
+        opacity: 0;
+        transform: translateX(-30%);
+    }
+    50% {
+        opacity: 1;
+        transform: translateX(30%);
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(-30%);
+    }
 }
