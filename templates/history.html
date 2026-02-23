@@ -1,9 +1,8 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>History</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
+{% extends "base.html" %}
+
+{% block title %}Estimation History{% endblock %}
+
+{% block content %}
 <body>
 
 <h1>Estimation History</h1>
@@ -45,4 +44,4 @@
 <a href="/">← Back to Home</a>
 
 </body>
-</html>
+{% endblock %}

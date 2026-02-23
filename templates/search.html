@@ -1,13 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Search & Edit</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
+{% extends "base.html" %}
 
-<h1>Search Feature History</h1>
+{% block title %}Search and Edit Feature History{% endblock %}
+
+{% block content %}
+
+<h1>Search and Edit Feature History</h1>
 
 <div class="card">
 
@@ -119,4 +116,4 @@
 <a href="/" class="history-link">← Back to Home</a>
 
 </body>
-</html>
+{% endblock %}

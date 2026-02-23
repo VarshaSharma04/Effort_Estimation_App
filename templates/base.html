@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Effort Estimation{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<!-- ================= NAVBAR ================= -->
+
+<nav class="navbar">
+    <div class="nav-container">
+
+        <div class="nav-logo">
+            Effort Estimation
+        </div>
+
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/grooming">Grooming</a>
+            <a href="/implementation">Implementation</a>
+            <a href="/final">Final</a>
+            <a href="/search">Search</a>
+            <a href="/history">History</a>
+        </div>
+
+    </div>
+</nav>
+
+<!-- ================= PAGE CONTENT ================= -->
+
+<div class="page-content">
+    {% block content %}{% endblock %}
+</div>
+
+</body>
+</html>

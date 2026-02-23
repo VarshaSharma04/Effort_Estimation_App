@@ -1,16 +1,13 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Edit Entry</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
+{% extends "base.html" %}
 
+{% block title %}Edit Entry{% endblock %}
+
+{% block content %}
 <h1 style="text-align:center; margin-top:40px;">
     Edit Entry
 </h1>
 
-<form method="POST" style="max-width:900px; margin:40px auto;">
+<form method="POST" class="effort-form">
 
     {% for key, value in row.items() %}
         <div class="form-row">
@@ -37,4 +34,4 @@
 </div>
 
 </body>
-</html>
+{% endblock %}
