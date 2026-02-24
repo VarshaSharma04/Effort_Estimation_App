@@ -24,6 +24,12 @@ def safe(v):
     except:
         return 0.0
 
+def clean_note(text):
+    import re
+    text = str(text)
+    text = re.sub(r"[<>]", "", text)   # remove XML breakers
+    text = text.replace("&", "and")    # prevent XML corruption
+    return text[:1000]                 # limit size
 
 def save_to_sheet(sheet_name, row_dict):
 
@@ -91,7 +97,6 @@ def home():
 
 # ================= GROOMING =================
 @app.route("/grooming", methods=["GET", "POST"])
-@app.route("/grooming", methods=["GET", "POST"])
 def grooming():
 
     if request.method == "POST":
@@ -120,6 +125,7 @@ def grooming():
 
         row.update(input_data)
         save_to_sheet("Grooming", row)
+
         # -------- SAVE GROOMING NOTES --------
         notes_rows = []
 
@@ -127,23 +133,22 @@ def grooming():
             field_name = f"G_{f}"
             note_value = request.form.get(f"{field_name}_note", "").strip()
 
-            if note_value != "":
+            if note_value:
                 notes_rows.append({
                     "Feature_ID": Feature_ID,
                     "Sheet": "Grooming",
                     "Field_Name": field_name,
-                    "Note": note_value,
+                    "Note": clean_note(note_value),
                     "Time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 })
 
         for note_row in notes_rows:
             save_to_sheet("Notes", note_row)
+
         session["modal_result"] = effort
         return redirect("/grooming")
 
-    # 🚨 IMPORTANT PART
     effort = session.pop("modal_result", None)
-
     return render_template("grooming.html", effort=effort)
 
 # ================= IMPLEMENTATION =================
@@ -177,31 +182,29 @@ def implementation():
         row.update(input_data)
         save_to_sheet("Implementation", row)
 
-        # -------- SAVE NOTES TO NOTES SHEET --------
+        # -------- SAVE IMPLEMENTATION NOTES --------
         notes_rows = []
 
         for f in IMPLEMENTATION_FEATURES:
             field_name = f"I_{f}"
             note_value = request.form.get(f"{field_name}_note", "").strip()
 
-            if note_value != "":
+            if note_value:
                 notes_rows.append({
                     "Feature_ID": Feature_ID,
                     "Sheet": "Implementation",
                     "Field_Name": field_name,
-                    "Note": note_value,
+                    "Note": clean_note(note_value),
                     "Time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 })
 
-        # Save all notes
         for note_row in notes_rows:
             save_to_sheet("Notes", note_row)
-        # ✅ STORE & REDIRECT
+
         session["modal_result"] = effort
         return redirect("/implementation")
 
     modal_result = session.pop("modal_result", None)
-
     return render_template("implementation.html", effort=modal_result)
 
 # ================= FINAL =================
