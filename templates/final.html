@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block title %}Final Effort Review{% endblock %}
+
+{% block content %}
+
+<!-- ================= RESULT MODAL ================= -->
+
+<div id="resultModal"
+     class="result-modal"
+     data-result="{{ effort if effort is defined else (final_effort if final_effort is defined else '') }}">
+
+  <div class="result-modal-content">
+    <span class="close-modal">&times;</span>
+
+    <h2>Estimation Result</h2>
+
+    <div class="result-number">
+        <strong id="modalCount">0</strong> hrs
+    </div>
+
+  </div>
+</div>
+
+
+<h1>Final Effort Review</h1>
+
+<!-- ================= SEARCH FORM ================= -->
+
+<div class="top-action">
+    <form method="POST" class="search-form">
+
+        <input type="text"
+               name="feature_id"
+               placeholder="Enter Feature ID or Name"
+               value="{{ feature_id if feature_id else '' }}"
+               required>
+
+        <button type="submit"
+                name="action"
+                value="search"
+                class="primary-btn">
+            Search
+        </button>
+
+        {% if grooming and implementation %}
+        <button type="submit"
+                name="action"
+                value="calculate"
+                class="primary-btn big-final-btn">
+            Calculate Final Effort
+        </button>
+        {% endif %}
+
+    </form>
+</div>
+
+
+<!-- ================= TABLE SECTION ================= -->
+
+{% if grooming or implementation %}
+<div class="comparison-row">
+
+    <!-- ============ GROOMING TABLE ============ -->
+    {% if grooming %}
+    <div class="table-card">
+
+        <h2 class="section-heading">Grooming</h2>
+
+        <table class="review-table">
+            <tr>
+                <th>Field</th>
+                <th>Value</th>
+            </tr>
+
+            {% for key, value in grooming.items() %}
+                {% if key not in ["feature_id"] %}
+                <tr>
+                    <td>{{ key.replace("_"," ").title() }}</td>
+                    <td>{{ value if value != "" else "---" }}</td>
+                </tr>
+                {% endif %}
+            {% endfor %}
+        </table>
+
+        <!-- ✅ EDIT BUTTON ADDED SAFELY -->
+        {% set fid = grooming.get('feature_id') 
+           or grooming.get('Feature_ID') 
+           or grooming.get('FEATURE_ID') %}
+
+        {% if fid %}
+        <div class="section-action">
+            <a href="/edit/Grooming/{{ fid }}?next=final">
+                <button type="button" class="secondary-btn">
+                    Edit Grooming
+                </button>
+            </a>
+        </div>
+        {% endif %}
+
+    </div>
+    {% endif %}
+
+    <!-- ============ IMPLEMENTATION TABLE ============ -->
+    {% if implementation %}
+    <div class="table-card">
+
+        <h2 class="section-heading">Implementation</h2>
+
+        <table class="review-table">
+            <tr>
+                <th>Field</th>
+                <th>Value</th>
+            </tr>
+
+            {% for key, value in implementation.items() %}
+                {% if key not in ["feature_id"] %}
+                <tr>
+                    <td>{{ key.replace("_"," ").title() }}</td>
+                    <td>{{ value if value != "" else "---" }}</td>
+                </tr>
+                {% endif %}
+            {% endfor %}
+        </table>
+
+        <!-- ✅ EDIT BUTTON ADDED SAFELY -->
+        {% set fid = implementation.get('feature_id') 
+           or implementation.get('Feature_ID') 
+           or implementation.get('FEATURE_ID') %}
+
+        {% if fid %}
+        <div class="section-action">
+            <a href="/edit/Implementation/{{ fid }}?next=final">
+                <button type="button" class="secondary-btn">
+                    Edit Implementation
+                </button>
+            </a>
+        </div>
+        {% endif %}
+
+    </div>
+    {% endif %}
+
+</div>
+{% endif %}
+
+<!-- ================= BACK BUTTON ================= -->
+
+<div class="center" style="margin-top:40px;">
+    <a href="/" class="history-link">← Back to Home</a>
+</div>
+
+{% endblock %}

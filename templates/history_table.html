@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<body>
+
+<h1>{{ title }}</h1>
+
+{% if download_url and rows and rows|length > 0 %}
+<div class="download-banner">
+    <div class="download-banner-left">
+        <span class="download-icon">&#128190;</span>
+        <div>
+            <div class="download-title">Export History</div>
+            <div class="download-sub">Download all <strong>{{ title }}</strong> records as an Excel file</div>
+        </div>
+    </div>
+    <a href="{{ download_url }}" class="download-btn">
+        &#11015;&nbsp; Download Excel
+    </a>
+</div>
+{% endif %}
+
+{% if rows and rows|length > 0 %}
+
+<table class="review-table">
+    <thead>
+        <tr>
+            {% for col in rows[0].keys() %}
+                <th>{{ col }}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in rows %}
+        <tr>
+            {% for value in row.values() %}
+                <td>{{ value }}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% else %}
+<p>No history available.</p>
+{% endif %}
+
+<a href="/history" class="history-link">← Back to History</a>
+
+</body>
+{% endblock %}

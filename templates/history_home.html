@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Estimation History{% endblock %}
+
+{% block content %}
+<body>
+
+<h1 style="text-align:center; margin-top:40px;">
+    Estimation History
+</h1>
+
+<div class="history-container">
+
+    <a href="/history/grooming" class="history-card grooming">
+        <h2>📊 Grooming History</h2>
+        <p>View all grooming estimations recorded.</p>
+    </a>
+
+    <a href="/history/implementation" class="history-card implementation">
+        <h2>⚙ Implementation History</h2>
+        <p>View all implementation estimations recorded.</p>
+    </a>
+
+    <a href="/history/final" class="history-card final">
+        <h2>🧮 Final History</h2>
+        <p>View all final combined estimations.</p>
+    </a>
+
+</div>
+<h2 style="text-align:center; margin-top:40px;">History by Component Area (CA)</h2>
+
+<div class="history-container">
+    <a href="/history/ca/Fast Path Engine" class="history-card grooming">
+        <h2>&#128640; Fast Path Engine</h2>
+        <p>View all records for Fast Path Engine.</p>
+    </a>
+    <a href="/history/ca/TRSOAM" class="history-card implementation">
+        <h2>&#128225; TRSOAM</h2>
+        <p>View all records for TRSOAM.</p>
+    </a>
+    <a href="/history/ca/S%26A" class="history-card final">
+        <h2>&#128269; S&amp;A</h2>
+        <p>View all records for S&amp;A.</p>
+    </a>
+    <a href="/history/ca/External" class="history-card grooming">
+        <h2>&#127758; External</h2>
+        <p>View all records for External.</p>
+    </a>
+</div>
+<div style="text-align:center; margin-top:40px;">
+    <a href="/" style="color:#9ecbff;">← Back to Home</a>
+</div>
+
+</body>
+{% endblock %}

@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}Search and Edit Feature History{% endblock %}
+
+{% block content %}
+
+<h1>Search and Edit Feature History</h1>
+
+<div class="card">
+
+    <!-- SEARCH FORM -->
+    <form method="POST" action="{{ url_for('search') }}">
+
+        <div class="form-row">
+            <input type="text" 
+                   name="query" 
+                   placeholder="Enter Feature ID or Feature Name" 
+                   required>
+        </div>
+
+        <div class="section-action">
+            <button type="submit" class="primary-btn">
+                Search
+            </button>
+        </div>
+
+    </form>
+
+</div>
+
+
+<!-- ================= RESULTS ================= -->
+
+{% if grooming_results or implementation_results or final_results %}
+
+<div class="download-banner">
+    <div class="download-banner-left">
+        <span class="download-icon">&#128190;</span>
+        <div>
+            <div class="download-title">Export Results</div>
+            <div class="download-sub">Download all records for <strong>{{ query }}</strong> as an Excel file</div>
+        </div>
+    </div>
+    <a href="/search/download?query={{ query | urlencode }}" class="download-btn">
+        &#11015;&nbsp; Download Excel
+    </a>
+</div>
+
+<div class="card">
+
+    <!-- GROOMING RESULTS -->
+    {% if grooming_results %}
+    <h2 class="section-heading">Grooming Results</h2>
+
+    {% for row in grooming_results %}
+    <div class="result-card">
+
+        {% for key, value in row.items() %}
+            <div class="result-row">
+                <span class="result-label">
+                    {{ key.replace("_"," ").title() }}
+                </span>
+                <span class="result-value">
+                    {{ value }}
+                </span>
+            </div>
+        {% endfor %}
+
+        <div class="section-action">
+            {% set fid = row.get('feature_id') 
+            or row.get('Feature_ID') 
+            or row.get('FEATURE_ID') %}
+
+            {% if fid %}
+            <a href="/edit/Grooming/{{ fid }}?next=search">
+                <button type="button" class="secondary-btn">Edit</button>
+            </a>
+            {% endif %}
+        </div>
+
+    </div>
+    {% endfor %}
+    {% endif %}
+
+
+    <!-- IMPLEMENTATION RESULTS -->
+    {% if implementation_results %}
+    <h2 class="section-heading">Implementation Results</h2>
+
+    {% for row in implementation_results %}
+    <div class="result-card">
+
+        {% for key, value in row.items() %}
+            <div class="result-row">
+                <span class="result-label">
+                    {{ key.replace("_"," ").title() }}
+                </span>
+                <span class="result-value">
+                    {{ value }}
+                </span>
+            </div>
+        {% endfor %}
+
+        <div class="section-action">
+            {% set fid = row.get('feature_id') 
+            or row.get('Feature_ID') 
+            or row.get('FEATURE_ID') %}
+
+            {% if fid %}
+            <a href="/edit/Implementation/{{ fid }}?next=search">
+                <button type="button" class="secondary-btn">Edit</button>
+            </a>
+            {% endif %}
+        </div>
+
+    </div>
+    {% endfor %}
+    {% endif %}
+
+</div>
+
+{% elif request.method == "POST" %}
+    <div class="card center">
+        <h3>No results found.</h3>
+    </div>
+{% endif %}
+
+
+<a href="/" class="history-link">← Back to Home</a>
+
+</body>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Entry{% endblock %}
+
+{% block content %}
+<h1 style="text-align:center; margin-top:40px;">
+    Edit Entry
+</h1>
+
+<form method="POST" class="effort-form">
+
+    {% for key, value in row.items() %}
+        <div class="form-row">
+            <label>{{ key }}</label>
+
+            {% if key|lower in ["feature_id"] %}
+                <!-- Protected field: readonly -->
+                <input type="text" name="{{ key }}" value="{{ value }}" readonly>
+            {% else %}
+                <input type="text" name="{{ key }}" value="{{ value }}">
+            {% endif %}
+
+        </div>
+    {% endfor %}
+
+    <div style="text-align:center; margin-top:20px;">
+        <button class="primary-btn">Save Changes</button>
+    </div>
+
+</form>
+
+<div style="text-align:center;">
+    <a href="/search" style="color:#9ecbff;">← Back</a>
+</div>
+
+</body>
+{% endblock %}
