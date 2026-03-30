@@ -32,18 +32,19 @@
 <!-- ================= RESULTS ================= -->
 
 {% if grooming_results or implementation_results or final_results %}
-
 <div class="download-banner">
+
     <div class="download-banner-left">
-        <span class="download-icon">&#128190;</span>
-        <div>
-            <div class="download-title">Export Results</div>
+        <div class="download-title">Export Results</div>
+        <div class="download-sub">
             <div class="download-sub">Download all records for <strong>{{ query }}</strong> as an Excel file</div>
         </div>
     </div>
-    <a href="/search/download?query={{ query | urlencode }}" class="download-btn">
-        &#11015;&nbsp; Download Excel
+
+    <a href="/search/download?query={{ query | urlencode }}" class="btn download-btn">
+        ⬇ Download Excel
     </a>
+
 </div>
 
 <div class="card">
@@ -67,17 +68,29 @@
         {% endfor %}
 
         <div class="section-action">
+
             {% set fid = row.get('feature_id') 
             or row.get('Feature_ID') 
             or row.get('FEATURE_ID') %}
 
             {% if fid %}
+
+            <!-- EDIT BUTTON -->
             <a href="/edit/Grooming/{{ fid }}?next=search">
                 <button type="button" class="secondary-btn">Edit</button>
             </a>
-            {% endif %}
-        </div>
 
+            <!-- DELETE BUTTON -->
+            <form method="POST" action="/delete/Grooming/{{ fid }}" style="display:inline;">
+                <button type="submit" class="delete-btn"
+                        onclick="return confirm('Are you sure you want to delete this record?')">
+                    Delete
+                </button>
+            </form>
+
+            {% endif %}
+
+        </div>
     </div>
     {% endfor %}
     {% endif %}
@@ -102,17 +115,29 @@
         {% endfor %}
 
         <div class="section-action">
+
             {% set fid = row.get('feature_id') 
             or row.get('Feature_ID') 
             or row.get('FEATURE_ID') %}
 
             {% if fid %}
-            <a href="/edit/Implementation/{{ fid }}?next=search">
-                <button type="button" class="secondary-btn">Edit</button>
-            </a>
-            {% endif %}
-        </div>
 
+            <!-- EDIT BUTTON -->
+            <a href="/edit/Grooming/{{ fid }}?next=search">
+                <button type="button" class="btn edit-btn">✏ Edit</button>
+            </a>
+
+            <!-- DELETE BUTTON -->
+            <form method="POST" action="/delete/Grooming/{{ fid }}" style="display:inline;">
+                <button type="submit" class="delete-btn"
+                        onclick="return confirm('Are you sure you want to delete this record?')">
+                    Delete
+                </button>
+            </form>
+
+            {% endif %}
+
+        </div>
     </div>
     {% endfor %}
     {% endif %}

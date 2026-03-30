@@ -180,7 +180,7 @@ def home():
 def grooming():
 
     if request.method == "POST":
-
+        User_Story_Name = request.form.get("User_Story_Name", "").strip()
         Feature_ID = request.form.get("Feature_ID", "").strip()
         Feature_Name = request.form.get("Feature_Name", "").strip()
         ca_value = request.form.get("CA", "").strip()
@@ -214,6 +214,7 @@ def grooming():
         row = {
             "Feature_ID": Feature_ID,
             "Feature_Name": Feature_Name,
+            "User_Story_Name": User_Story_Name,
             "CA": ca_value,
             "grooming_effort": effort
         }
@@ -256,7 +257,7 @@ def grooming():
 def implementation():
 
     if request.method == "POST":
-
+        User_Story_Name = request.form.get("User_Story_Name", "").strip()
         Feature_ID = request.form.get("Feature_ID", "").strip()
         Feature_Name = request.form.get("Feature_Name", "").strip()
         ca_value = request.form.get("CA", "").strip()
@@ -287,6 +288,7 @@ def implementation():
         row = {
             "Feature_ID": Feature_ID,
             "Feature_Name": Feature_Name,
+            "User_Story_Name": User_Story_Name,
             "CA": ca_value,
             "implementation_effort": effort
         }
@@ -711,7 +713,18 @@ def download_search():
             if not filtered.empty:
                 keep_cols = [c for c in filtered.columns
                              if c.strip().lower() not in EXCLUDED_DISPLAY_COLS]
-                sheets_data[sheet] = filtered[keep_cols]
+                df_clean = filtered[keep_cols]
+
+                # 🔥 TRANSPOSE (make fields vertical)
+                df_clean = df_clean.T
+
+                # Optional: rename columns nicely
+                df_clean.columns = [f"Record {i+1}" for i in range(len(df_clean.columns))]
+
+                # Optional: label first column
+                df_clean.index.name = "Field"
+
+                sheets_data[sheet] = df_clean
     except Exception:
         return redirect("/search")
 
@@ -721,7 +734,7 @@ def download_search():
     output = BytesIO()
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
         for sheet_name, df_sheet in sheets_data.items():
-            df_sheet.to_excel(writer, sheet_name=sheet_name[:31], index=False)
+            df_sheet.to_excel(writer, sheet_name=sheet_name[:31], index=True)
     output.seek(0)
 
     return send_file(
@@ -805,6 +818,69 @@ def ca_history_download(ca_name):
         download_name=f"{safe_name}_History.xlsx",
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
+
+# ================= DELETE =================
+@app.route("/delete/<sheet>/<feature_id>", methods=["POST"])
+def delete_record(sheet, feature_id):
+
+    if not os.path.exists(EXCEL_PATH):
+        return redirect("/search")
+
+    feature_id = str(feature_id).strip()
+
+    def delete_from_file(file_path, target_sheet):
+        if not os.path.exists(file_path):
+            return
+
+        try:
+            df = pd.read_excel(file_path, sheet_name=target_sheet)
+        except Exception:
+            return  # Sheet may not exist → skip
+
+        if df.empty:
+            return
+
+        df.columns = df.columns.str.strip()
+
+        # Find feature_id column (case-insensitive)
+        feature_id_col = None
+        for col in df.columns:
+            if col.strip().lower() == "feature_id":
+                feature_id_col = col
+                break
+
+        if not feature_id_col:
+            return
+
+        df[feature_id_col] = df[feature_id_col].astype(str).str.strip()
+
+        # Remove matching row
+        df = df[df[feature_id_col] != feature_id]
+
+        # Save back
+        with pd.ExcelWriter(file_path, engine="openpyxl", mode="a", if_sheet_exists="replace") as writer:
+            df.to_excel(writer, sheet_name=target_sheet, index=False)
+
+    # ✅ 1. Delete from main sheet (Grooming / Implementation / Final)
+    delete_from_file(EXCEL_PATH, sheet)
+
+    # ✅ 2. Delete from Notes sheet
+    delete_from_file(EXCEL_PATH, "Notes")
+
+    # ✅ 3. Delete from CA-specific Excel files
+    CA_FILE_SUFFIX = ["FastPathEngine", "TRSOAM", "SandA", "External"]
+
+    for ca in CA_FILE_SUFFIX:
+        ca_path = os.path.join(BASE_DIR, f"CA_{ca}.xlsx")
+        delete_from_file(ca_path, sheet)
+
+    # ✅ 4. Delete from CA sheets inside main Excel file
+    CA_SHEETS = ["Fast Path Engine", "TRSOAM", "S&A", "External"]
+
+    for ca_name in CA_SHEETS:
+        delete_from_file(EXCEL_PATH, ca_name)
+
+    return redirect("/search")
 
 
 if __name__ == "__main__":

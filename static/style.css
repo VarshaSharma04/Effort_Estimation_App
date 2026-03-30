@@ -890,3 +890,107 @@ input, select {
     border-radius: 8px;
     overflow: hidden;
 }
+.secondary-btn {
+  margin-right: 10px;
+}
+
+.delete-btn {
+  background-color: #ff4d4d;
+  color: white;
+}
+.delete-btn {
+  background-color: #ff4d4d;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+.delete-btn:hover {
+  background-color: #cc0000;
+}
+/* ===== COMMON BUTTON BASE ===== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* ===== EDIT BUTTON ===== */
+.edit-btn {
+  background: linear-gradient(135deg, #4facfe, #00f2fe);
+  color: white;
+}
+
+.edit-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+/* ===== DOWNLOAD BUTTON ===== */
+.download-btn {
+  background: linear-gradient(135deg, #00c6ff, #0072ff);
+  color: #ffffff;              /* ✅ FIXED VISIBILITY */
+  font-weight: 600;
+  font-size: 14px;
+
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+
+  cursor: pointer;
+  text-decoration: none;
+
+  transition: all 0.2s ease;
+}
+
+.download-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 114, 255, 0.4);
+}
+
+/* ===== DELETE BUTTON (upgrade your existing) ===== */
+.delete-btn {
+  background: linear-gradient(135deg, #ff4d4d, #ff0000);
+  color: white;
+}
+
+.delete-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+.btn span {
+  font-size: 16px;
+}
+
+.download-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 15px 20px;
+  margin-bottom: 20px;
+
+  border-radius: 12px;
+  background: rgba(0, 255, 200, 0.05);
+  border: 1px solid rgba(0, 255, 200, 0.2);
+}
+
+.download-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.download-sub {
+  font-size: 13px;
+  color: #aaa;
+}
